@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - ChatMind</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../static/about.css">
+    <link rel="icon" href="/favicon.ico">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="logo-box">
+                    <span>C</span>
+                </div>
+                <h1>ChatMind</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/features">Features</a></li>
+                    <li><a href="/about" class="active">About</a></li>
+                    <li><a href="/contact">Contact</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <div class="hero">
+            <h1>About ChatMind</h1>
+            <p>We're revolutionizing digital communication by combining the best of Discord's community features with WhatsApp's simplicity</p>
+        </div>
+
+        <div class="about-section">
+            <div class="story-grid">
+                <div class="story-content">
+                    <h3>Our Story</h3>
+                    <p>ChatMind was born from a simple observation: people love Discord's rich community features but sometimes find it overwhelming, while WhatsApp is simple but lacks advanced collaboration tools.</p>
+                    <p>We set out to create the perfect messaging platform that combines the best of both worlds - powerful enough for communities, simple enough for everyone.</p>
+                </div>
+                <div class="story-image">
+                    <i class="fas fa-lightbulb"></i>
+                </div>
+            </div>
+
+            <div class="story-grid">
+                <div class="story-image">
+                    <i class="fas fa-rocket"></i>
+                </div>
+                <div class="story-content">
+                    <h3>Our Mission</h3>
+                    <p>To make digital communication more meaningful, efficient, and accessible for everyone - from casual conversations to professional collaborations.</p>
+                    <p>We believe that great communication tools should enhance human connections, not complicate them.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-section">
+            <div class="section-title">
+                <h2>ChatMind by Numbers</h2>
+                <p>Growing fast and making an impact worldwide</p>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="aboutActive">0</div>
+                    <div class="stat-label">Active Users</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="aboutMessages">0</div>
+                    <div class="stat-label">Messages Sent</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="aboutCountries">Pakistan</div>
+                    <div class="stat-label">Countries</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="aboutUptime">99.9%</div>
+                    <div class="stat-label">Uptime</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="aboutOnline">0</div>
+                    <div class="stat-label">Online Now</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="team-section">
+            <div class="section-title">
+                <h2>Meet Our Team</h2>
+                <p>The passionate people behind ChatMind</p>
+            </div>
+            <div class="team-grid">
+                <div class="team-card">
+                    <div class="team-avatar">MA</div>
+                    <h4>Muhammad ArhamAbdul Qayyum</h4>
+                    <div class="team-role">Leader 1</div>
+                    <p>Leads product vision and engineering direction with a focus on realtime, reliability, and user-centric design.</p>
+                </div>
+                <div class="team-card">
+                    <div class="team-avatar">HA</div>
+                    <h4>Huzaifa Ali</h4>
+                    <div class="team-role">Leader 2</div>
+                    <p>Drives platform scalability and developer experience, ensuring seamless collaboration and performance.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="values-section">
+            <div class="section-title">
+                <h2>Our Values</h2>
+                <p>The principles that guide everything we do</p>
+            </div>
+            <div class="values-grid">
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h4>Privacy First</h4>
+                    <p>Your conversations are yours. We use end-to-end encryption and never sell your data to third parties.</p>
+                </div>
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h4>Community Driven</h4>
+                    <p>We listen to our users and build features based on real needs and feedback from our community.</p>
+                </div>
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <h4>Human Connection</h4>
+                    <p>Technology should bring people closer together, not create barriers. We design for meaningful interactions.</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>&copy; 2025 ChatMind. All rights reserved. | Building the future of communication</p>
+        </footer>
+    </div>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
+    <script>
+        const socket = io();
+        socket.on('presence', (data) => {
+            const el = document.getElementById('aboutOnline');
+            if (el && data && typeof data.online === 'number') {
+                el.textContent = String(data.online);
+            }
+        });
+        // Poll stats periodically
+        function loadAboutStats(){
+            fetch('/about/stats').then(r=>r.json()).then(d=>{
+                if (!d.success) return;
+                const s = d.stats;
+                const a = document.getElementById('aboutActive'); if (a) a.textContent = String(s.active_users);
+                const m = document.getElementById('aboutMessages'); if (m) m.textContent = String(s.messages_sent);
+                const c = document.getElementById('aboutCountries'); if (c && Array.isArray(s.countries)) c.textContent = s.countries.join(', ');
+                const u = document.getElementById('aboutUptime'); if (u && s.uptime) u.textContent = s.uptime;
+            }).catch(()=>{});
+        }
+        loadAboutStats();
+        setInterval(loadAboutStats, 10000);
+    </script>
+</body>
+</html>
