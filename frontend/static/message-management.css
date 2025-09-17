@@ -1,0 +1,266 @@
+/* Message Management Styles */
+
+.message {
+    position: relative;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 8px;
+    background: #f5f5f5;
+    max-width: 70%;
+}
+
+.message.own {
+    background: #007bff;
+    color: white;
+    margin-left: auto;
+}
+
+.message.other {
+    background: #e9ecef;
+    color: #333;
+    margin-right: auto;
+}
+
+/* Message delete button */
+.message-delete-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(0, 0, 0, 0.1);
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.message:hover .message-delete-btn {
+    opacity: 1;
+}
+
+.message-delete-btn:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+/* Message options menu */
+.message-options-menu {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 150px;
+    overflow: hidden;
+    z-index: 1000;
+}
+
+.message-option {
+    padding: 12px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #333;
+    transition: background-color 0.2s;
+}
+
+.message-option:hover {
+    background-color: #f8f9fa;
+}
+
+.message-option.delete-for-everyone {
+    color: #dc3545;
+}
+
+.message-option.delete-for-everyone:hover {
+    background-color: #fff5f5;
+}
+
+.message-option i {
+    width: 16px;
+    text-align: center;
+}
+
+/* Notifications */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 6px;
+    color: white;
+    font-weight: 500;
+    z-index: 10000;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    max-width: 300px;
+    word-wrap: break-word;
+}
+
+.notification.show {
+    transform: translateX(0);
+}
+
+.notification.success {
+    background-color: #28a745;
+}
+
+.notification.error {
+    background-color: #dc3545;
+}
+
+/* Message content styles */
+.message-content {
+    margin-bottom: 5px;
+    word-wrap: break-word;
+    line-height: 1.4;
+}
+
+.message-time {
+    font-size: 11px;
+    opacity: 0.7;
+    text-align: right;
+}
+
+.message.own .message-time {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.message.other .message-time {
+    color: rgba(0, 0, 0, 0.6);
+}
+
+/* Deleted message placeholder */
+.message.deleted {
+    background: #f8f9fa;
+    color: #6c757d;
+    font-style: italic;
+    opacity: 0.7;
+}
+
+.message.deleted .message-content::before {
+    content: "🗑️ ";
+}
+
+/* File message styles */
+.message.file {
+    border-left: 4px solid #007bff;
+}
+
+.message.file .file-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 5px;
+}
+
+.message.file .file-icon {
+    font-size: 20px;
+    color: #007bff;
+}
+
+.message.file .file-name {
+    font-weight: 500;
+}
+
+.message.file .file-size {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+/* Group message styles */
+.message.group {
+    border-left: 3px solid #28a745;
+}
+
+.message.group .sender-name {
+    font-weight: 600;
+    font-size: 12px;
+    margin-bottom: 4px;
+    color: #28a745;
+}
+
+.message.group.own .sender-name {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .message {
+        max-width: 85%;
+    }
+    
+    .message-options-menu {
+        min-width: 120px;
+    }
+    
+    .message-option {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+    
+    .notification {
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+}
+
+/* Animation for message removal */
+.message.removing {
+    animation: fadeOut 0.3s ease forwards;
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+}
+
+/* Context menu backdrop */
+.message-options-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 999;
+    background: transparent;
+}
+
+/* Loading state for messages */
+.message.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.message.loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    border: 2px solid #ccc;
+    border-top-color: #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

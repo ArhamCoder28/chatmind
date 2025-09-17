@@ -1,0 +1,305 @@
+/* Message Reactions Styles */
+
+.reactions-container {
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.message-reactions {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.reaction-item {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 6px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 12px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.reaction-item:hover {
+    background: rgba(0, 0, 0, 0.1);
+    transform: scale(1.05);
+}
+
+.reaction-item.user-reacted {
+    background: #e3f2fd;
+    border-color: #2196f3;
+    color: #1976d2;
+    font-weight: 500;
+}
+
+.add-reaction-btn {
+    background: none;
+    border: none;
+    padding: 4px 6px;
+    border-radius: 50%;
+    cursor: pointer;
+    color: #666;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    opacity: 0.7;
+}
+
+.add-reaction-btn:hover {
+    background: rgba(0, 0, 0, 0.1);
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.reaction-picker {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    gap: 4px;
+    animation: reactionPickerSlide 0.2s ease-out;
+}
+
+@keyframes reactionPickerSlide {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.reaction-picker .reaction-btn {
+    background: none;
+    border: none;
+    padding: 6px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.2s ease;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.reaction-picker .reaction-btn:hover {
+    background: rgba(0, 0, 0, 0.1);
+    transform: scale(1.2);
+}
+
+.reaction-animation {
+    animation: reactionFloat 1s ease-out forwards;
+    font-size: 24px;
+    pointer-events: none;
+}
+
+@keyframes reactionFloat {
+    0% {
+        transform: translateY(0px) scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: translateY(-15px) scale(1.2);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateY(-30px) scale(0.8);
+        opacity: 0;
+    }
+}
+
+/* Message item modifications for reactions */
+.message-item {
+    position: relative;
+}
+
+.message-item:hover .add-reaction-btn {
+    opacity: 1;
+}
+
+/* Dark theme support */
+[data-theme="dark"] .reaction-item {
+    background: rgba(255, 255, 255, 0.1);
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .reaction-item:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .reaction-item.user-reacted {
+    background: rgba(33, 150, 243, 0.3);
+    border-color: #2196f3;
+    color: #64b5f6;
+}
+
+[data-theme="dark"] .add-reaction-btn {
+    color: #bbb;
+}
+
+[data-theme="dark"] .add-reaction-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+[data-theme="dark"] .reaction-picker {
+    background: #2d2d2d;
+    border-color: #444;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .reaction-picker .reaction-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .reaction-picker {
+        padding: 6px;
+        gap: 2px;
+    }
+    
+    .reaction-picker .reaction-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
+    }
+    
+    .reaction-item {
+        font-size: 11px;
+        padding: 1px 4px;
+    }
+    
+    .add-reaction-btn {
+        font-size: 12px;
+        padding: 3px 5px;
+    }
+}
+
+/* Notification styles */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 6px;
+    color: white;
+    font-weight: 500;
+    z-index: 10000;
+    animation: notificationSlide 0.3s ease-out;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.notification.error {
+    background: linear-gradient(135deg, #ff4444, #cc0000);
+}
+
+.notification.success {
+    background: linear-gradient(135deg, #4CAF50, #2E7D32);
+}
+
+.notification.info {
+    background: linear-gradient(135deg, #2196F3, #1565C0);
+}
+
+@keyframes notificationSlide {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Integration with existing message styles */
+.message-content {
+    margin-bottom: 5px;
+}
+
+.message-item .reactions-container {
+    margin-left: 45px; /* Align with message content */
+}
+
+.message-item.sent .reactions-container {
+    margin-left: 0;
+    margin-right: 45px;
+    justify-content: flex-end;
+}
+
+/* Reaction count badge */
+.reaction-item .count {
+    margin-left: 2px;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+/* Hover effects for better UX */
+.message-item:hover .reactions-container {
+    opacity: 1;
+}
+
+.reactions-container {
+    opacity: 0.9;
+    transition: opacity 0.2s ease;
+}
+
+/* Loading state for reactions */
+.reactions-loading {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 4px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Accessibility improvements */
+.reaction-btn:focus,
+.add-reaction-btn:focus {
+    outline: 2px solid #2196f3;
+    outline-offset: 2px;
+}
+
+.reaction-item[aria-pressed="true"] {
+    background: #e3f2fd;
+    border-color: #2196f3;
+}
+
+/* Tooltip for reaction details */
+.reaction-tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    white-space: nowrap;
+    z-index: 1000;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.reaction-item:hover .reaction-tooltip {
+    opacity: 1;
+}
