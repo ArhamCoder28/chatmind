@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message Context Menu</title>
+    <link rel="stylesheet" href="message-menu.css">
+</head>
+<body>
+    <div class="chat-container">
+        <div class="messages">
+            <div class="message" data-message-id="1">
+                <div class="message-content">
+                    <span class="sender">John:</span>
+                    <span class="text">Hey, how are you doing today?</span>
+                    <span class="time">2:30 PM</span>
+                </div>
+            </div>
+            
+            <div class="message" data-message-id="2">
+                <div class="message-content">
+                    <span class="sender">Sarah:</span>
+                    <span class="text">I'm doing great! Just finished my project.</span>
+                    <span class="time">2:32 PM</span>
+                </div>
+            </div>
+            
+            <div class="message" data-message-id="3">
+                <div class="message-content">
+                    <span class="sender">Mike:</span>
+                    <span class="text">Anyone up for lunch tomorrow?</span>
+                    <span class="time">2:35 PM</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Context Menu -->
+    <div class="context-menu" id="contextMenu">
+        <div class="menu-item" data-action="reply">
+            <i class="icon">↩</i>
+            <span>Reply</span>
+        </div>
+        <div class="menu-item" data-action="forward">
+            <i class="icon">→</i>
+            <span>Forward</span>
+        </div>
+        <div class="menu-item" data-action="copy">
+            <i class="icon">📋</i>
+            <span>Copy</span>
+        </div>
+        <div class="menu-item" data-action="delete">
+            <i class="icon">🗑</i>
+            <span>Delete</span>
+        </div>
+        <div class="menu-item" data-action="edit">
+            <i class="icon">✏</i>
+            <span>Edit</span>
+        </div>
+    </div>
+
+    <script src="message-menu.js"></script>
+</body>
+</html>
