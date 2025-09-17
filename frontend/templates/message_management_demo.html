@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Message Management Demo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='message-management.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        
+        .chat-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .chat-header {
+            background: #007bff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .chat-messages {
+            padding: 20px;
+            height: 400px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .demo-controls {
+            padding: 20px;
+            border-top: 1px solid #eee;
+            background: #f8f9fa;
+        }
+        
+        .demo-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .demo-btn:hover {
+            background: #0056b3;
+        }
+        
+        .demo-btn.danger {
+            background: #dc3545;
+        }
+        
+        .demo-btn.danger:hover {
+            background: #c82333;
+        }
+        
+        .user-info {
+            font-size: 12px;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #e3f2fd;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2><i class="fas fa-comments"></i> Chat Message Management Demo</h2>
+            <p>Right-click on messages to see delete options</p>
+        </div>
+        
+        <div class="user-info">
+            <strong>Current User:</strong> User A (ID: 1) | 
+            <strong>Chat Partner:</strong> User B (ID: 2)
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <!-- Messages will be added here -->
+        </div>
+        
+        <div class="demo-controls">
+            <h4>Demo Controls:</h4>
+            <button class="demo-btn" onclick="addMyMessage()">
+                <i class="fas fa-plus"></i> Add My Message
+            </button>
+            <button class="demo-btn" onclick="addOtherMessage()">
+                <i class="fas fa-plus"></i> Add Other's Message
+            </button>
+            <button class="demo-btn" onclick="addGroupMessage()">
+                <i class="fas fa-users"></i> Add Group Message
+            </button>
+            <button class="demo-btn danger" onclick="clearAllMessages()">
+                <i class="fas fa-trash"></i> Clear All
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+        // Set current user ID for demo
+        window.currentUserId = 1;
+        
+        let messageCounter = 1;
+        
+        // Mock socket.io for demo
+        window.io = () => ({
+            on: (event, callback) => {
+                console.log(`Listening for ${event}`);
+            },
+            emit: (event, data) => {
+                console.log(`Emitting ${event}:`, data);
+            }
+        });
+    </script>
+    <script src="{{ url_for('static', filename='message-management.js') }}"></script>
+    
+    <script>
+        // Demo functions
+        function addMyMessage() {
+            const message = {
+                id: messageCounter++,
+                sender_id: 1,
+                receiver_id: 2,
+                content: `This is my message #${messageCounter - 1}`,
+                created_at: new Date().toISOString()
+            };
+            
+            renderMessage(message);
+        }
+        
+        function addOtherMessage() {
+            const message = {
+                id: messageCounter++,
+                sender_id: 2,
+                receiver_id: 1,
+                content: `This is User B's message #${messageCounter - 1}`,
+                created_at: new Date().toISOString()
+            };
+            
+            renderMessage(message);
+        }
+        
+        function addGroupMessage() {
+            const message = {
+                id: messageCounter++,
+                sender_id: Math.random() > 0.5 ? 1 : 2,
+                group_id: 1,
+                content: `Group message #${messageCounter - 1}`,
+                created_at: new Date().toISOString(),
+                sender_name: Math.random() > 0.5 ? 'User A' : 'User B'
+            };
+            
+            renderGroupMessage(message);
+        }
+        
+        function clearAllMessages() {
+            document.getElementById('chatMessages').innerHTML = '';
+            messageCounter = 1;
+        }
+        
+        function renderMessage(message) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageElement = document.createElement('div');
+            
+            const isOwn = message.sender_id === window.currentUserId;
+            messageElement.className = `message ${isOwn ? 'own' : 'other'}`;
+            messageElement.setAttribute('data-message-id', message.id);
+            
+            messageElement.innerHTML = `
+                <div class="message-content">${message.content}</div>
+                <div class="message-time">${formatTime(message.created_at)}</div>
+            `;
+            
+            // Add context menu functionality
+            addMessageContextMenu(messageElement, message.id, message.sender_id, false);
+            
+            messagesContainer.appendChild(messageElement);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        function renderGroupMessage(message) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageElement = document.createElement('div');
+            
+            const isOwn = message.sender_id === window.currentUserId;
+            messageElement.className = `message group ${isOwn ? 'own' : 'other'}`;
+            messageElement.setAttribute('data-message-id', message.id);
+            messageElement.setAttribute('data-group-id', message.group_id);
+            
+            messageElement.innerHTML = `
+                <div class="sender-name">${message.sender_name}</div>
+                <div class="message-content">${message.content}</div>
+                <div class="message-time">${formatTime(message.created_at)}</div>
+            `;
+            
+            // Add context menu functionality
+            addMessageContextMenu(messageElement, message.id, message.sender_id, true);
+            
+            messagesContainer.appendChild(messageElement);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+        
+        // Override the actual API calls for demo purposes
+        const originalMessageManager = messageManager;
+        
+        messageManager.deleteMessageForEveryone = async function(messageId) {
+            console.log(`Demo: Deleting message ${messageId} for everyone`);
+            this.removeMessageFromUI(messageId);
+            this.showNotification('Message deleted for everyone (Demo)');
+            return true;
+        };
+        
+        messageManager.deleteMessageForMe = async function(messageId) {
+            console.log(`Demo: Deleting message ${messageId} for me`);
+            this.removeMessageFromUI(messageId);
+            this.showNotification('Message deleted for you (Demo)');
+            return true;
+        };
+        
+        messageManager.deleteGroupMessageForEveryone = async function(messageId) {
+            console.log(`Demo: Deleting group message ${messageId} for everyone`);
+            this.removeGroupMessageFromUI(messageId, 1);
+            this.showNotification('Group message deleted for everyone (Demo)');
+            return true;
+        };
+        
+        // Add some initial messages
+        setTimeout(() => {
+            addMyMessage();
+            addOtherMessage();
+            addGroupMessage();
+        }, 500);
+    </script>
+</body>
+</html>

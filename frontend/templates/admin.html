@@ -1,0 +1,2483 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - ChatMind</title>
+    <link rel="icon" href="/favicon.ico">
+    
+   
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../static/admin.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <div class="logo-box">
+                    <span>C</span>
+                </div>
+                <h1>ChatMind Admin</h1>
+            </div>
+            
+            <ul class="sidebar-menu">
+                <li><a href="#" class="active" data-section="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="#" data-section="users-section"><i class="fas fa-users"></i> Users</a></li>
+                <li><a href="#" data-section="groups-section"><i class="fas fa-users-cog"></i> Groups</a></li>
+                <li><a href="#" data-section="messages-section"><i class="fas fa-envelope"></i> Messages</a></li>
+                <li><a href="#" data-section="admin-actions"><i class="fas fa-cog"></i> Admin Actions</a></li>
+            </ul>
+            
+            <div class="admin-info">
+                <span class="admin-badge">ADMIN</span>
+                <a href="/logout" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <header>
+                <div class="header-title" id="currentSectionTitle">Dashboard</div>
+                <div class="header-actions">
+                    <input type="text" id="searchUsers" class="search-box" placeholder="Search users..." style="display:none;">
+                    <button id="toggleView" class="btn-primary" style="display:none;">Show All</button>
+                </div>
+            </header>
+
+            <div class="dashboard-content">
+                <!-- Dashboard Section -->
+                <div class="content-section active" id="dashboard">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3><i class="fas fa-users"></i> Total Users</h3>
+                            <div class="stat-number">{{ users|length }}</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3><i class="fas fa-envelope"></i> Total Messages</h3>
+                            <div class="stat-number">{{ messages|length }}</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3><i class="fas fa-users-cog"></i> Total Groups</h3>
+                            <div class="stat-number">{{ groups|length }}</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3><i class="fas fa-server"></i> Server Status</h3>
+                            <div class="stat-number" style="color: #27ae60; font-size: 1.5rem;">ONLINE</div>
+                        </div>
+                    </div>
+                    <div style="background:white; margin-top:20px; padding:20px; border-radius:12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                        <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:10px;">
+                            <h3 class="section-title" style="margin:0; border:none; padding:0;"><i class="fas fa-chart-line"></i> Activity (Last 14 Days)</h3>
+                            <select id="analyticsDays" class="form-select" style="width:auto;">
+                                <option value="7">7 days</option>
+                                <option value="14" selected>14 days</option>
+                                <option value="30">30 days</option>
+                                <option value="60">60 days</option>
+                            </select>
+                        </div>
+                        <canvas id="activityChart" height="120"></canvas>
+                    </div>
+                </div>
+
+
+                <!-- Analytics Section -->
+                <div class="content-section" id="analytics-section">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+                        <h3 class="section-title"><i class="fas fa-chart-line"></i> System Analytics</h3>
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn-primary" onclick="exportAnalytics()"><i class="fas fa-download"></i> Export</button>
+                            <button class="btn-primary" onclick="refreshAnalytics()"><i class="fas fa-sync"></i> Refresh</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Analytics Navigation Buttons -->
+                    <div class="analytics-nav" style="display:flex; gap:10px; margin-bottom:20px; justify-content:center;">
+                        <button class="analytics-btn active" data-view="active-users" onclick="switchAnalyticsView('active-users')">
+                            <i class="fas fa-fire"></i> Most Active Users
+                        </button>
+                        <button class="analytics-btn" data-view="system-health" onclick="switchAnalyticsView('system-health')">
+                            <i class="fas fa-bell"></i> System Health
+                        </button>
+                        <button class="analytics-btn" data-view="recent-events" onclick="switchAnalyticsView('recent-events')">
+                            <i class="fas fa-history"></i> Recent Events
+                        </button>
+                    </div>
+                    
+                    <!-- Analytics Views -->
+                    <div class="analytics-container">
+                        <!-- Most Active Users View -->
+                        <div class="analytics-view active" id="active-users-view">
+                            <div style="background:white; padding:30px; border-radius:15px; box-shadow:0 8px 25px rgba(0,0,0,0.1); min-height:400px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                                    <h4 style="color:#2d3748; margin:0;"><i class="fas fa-fire" style="color:#e53e3e;"></i> Most Active Users</h4>
+                                    <div style="display:flex; gap:10px;">
+                                        <button class="btn-secondary" onclick="refreshActiveUsers()"><i class="fas fa-sync"></i></button>
+                                        <span class="last-updated" id="activeUsersLastUpdated">Last updated: Never</span>
+                                    </div>
+                                </div>
+                                <div id="activeUsersList" style="max-height:350px; overflow-y:auto;"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- System Health View -->
+                        <div class="analytics-view" id="system-health-view">
+                            <div style="background:white; padding:30px; border-radius:15px; box-shadow:0 8px 25px rgba(0,0,0,0.1); min-height:400px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                                    <h4 style="color:#2d3748; margin:0;"><i class="fas fa-bell" style="color:#38a169;"></i> System Health</h4>
+                                    <div style="display:flex; gap:10px;">
+                                        <button class="btn-secondary" onclick="refreshSystemHealth()"><i class="fas fa-sync"></i></button>
+                                        <span class="last-updated" id="systemHealthLastUpdated">Last updated: Never</span>
+                                    </div>
+                                </div>
+                                <div id="systemHealth"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Recent Events View -->
+                        <div class="analytics-view" id="recent-events-view">
+                            <div style="background:white; padding:30px; border-radius:15px; box-shadow:0 8px 25px rgba(0,0,0,0.1); min-height:400px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                                    <h4 style="color:#2d3748; margin:0;"><i class="fas fa-history" style="color:#3182ce;"></i> Recent Events</h4>
+                                    <div style="display:flex; gap:10px;">
+                                        <button class="btn-secondary" onclick="refreshRecentEvents()"><i class="fas fa-sync"></i></button>
+                                        <span class="last-updated" id="recentEventsLastUpdated">Last updated: Never</span>
+                                    </div>
+                                </div>
+                                <div id="recentEvents" style="max-height:350px; overflow-y:auto;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-section" id="users-section">
+                    
+                    <h3 class="section-title"><i class="fas fa-users"></i> Registered Users ({{ users|length }})</h3>
+                    
+                    <table class="users-table">
+                        <thead>
+                            
+                            <tr>
+                                <th>ID</th>
+                                <th>Profile</th>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <!-- Users will be loaded here via JavaScript -->
+                        </tbody>
+                        
+                    </table><br>
+                    <a href="#" class="action-btn" id="openAddUser" >
+                                <i class="fas fa-user-plus"></i>
+                                <span>Add User</span>
+                                <small>Create new user's Account</small>
+                            </a>
+                    <div id="usersPagination" class="pagination"></div>
+                    <div id="usersPaginationInfo" class="pagination-info"></div>
+                </div>
+
+                <!-- Edit User Modal -->
+                <div class="modal-overlay" id="editUserModal">
+                    <div class="message-modal">
+                        <div class="modal-header">
+                            <h2><i class="fas fa-user-edit"></i> Edit User</h2>
+                            <button class="close-modal">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="editUserForm">
+                                <input type="hidden" id="editUserId" value="">
+                                <div class="form-group">
+                                    <label for="editUsername"><i class="fas fa-user"></i> Username</label>
+                                    <input type="text" id="editUsername" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="editEmail"><i class="fas fa-envelope"></i> Email</label>
+                                    <input type="email" id="editEmail" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="editPassword"><i class="fas fa-lock"></i> Password</label>
+                                    <input type="password" id="editPassword" class="form-control" placeholder="Leave blank to keep current password">
+                                </div>
+                                <div class="form-group">
+                                    <label for="editStatus"><i class="fas fa-check-circle"></i> Status</label>
+                                    <select id="editStatus" class="form-select">
+                                        <option value="Active">Active</option>
+                                        <option value="Suspended">Suspended</option>
+                                        <option value="Inactive">Inactive</option>
+                                    </select>
+                                </div>
+                                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                                    <button type="button" class="logout-btn" style="background: #6c757d; padding: 10px 20px;" onclick="closeEditModal()">Cancel</button>
+                                    <button type="submit" class="logout-btn" style="padding: 10px 20px;">Save Changes</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Groups Section -->
+                <div class="content-section" id="groups-section">
+                    <h3 class="section-title"><i class="fas fa-users-cog"></i> Groups Management ({{ groups|length }})</h3>
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Creator</th>
+                                <th>Members</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="groupsTableBody">
+                            <!-- Groups will be loaded here via JavaScript -->
+                        </tbody>
+                    </table>
+                    <div id="groupsPagination" class="pagination"></div>
+                    <div id="groupsPaginationInfo" class="pagination-info"></div>
+                </div>
+
+                <!-- Messages Section -->
+                <div class="content-section" id="messages-section">
+                    <h3 class="section-title"><i class="fas fa-envelope"></i> Contact Messages ({{ messages|length }})</h3>
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Subject</th>
+                                <th>Message</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="messagesTableBody">
+                            <!-- Messages will be loaded here via JavaScript -->
+                        </tbody>
+                    </table>
+                    <div id="messagesPagination" class="pagination"></div>
+                    <div id="messagesPaginationInfo" class="pagination-info"></div>
+                </div>
+
+
+
+                <!-- Admin Actions Section -->
+                <div class="content-section" id="admin-actions">
+                    <h3 class="section-title"><i class="fas fa-cog"></i> Admin Actions</h3>
+                    <div class="admin-actions">
+                        <div class="actions-grid">
+                            
+                            <a href="#" class="action-btn" data-action="analytics">
+                                <i class="fas fa-chart-bar"></i>
+                                <span>Analytics</span>
+                                <small>View system statistics</small>
+                            </a>
+                            <a href="#" class="action-btn" data-action="system-settings">
+                                <i class="fas fa-cogs"></i>
+                                <span>System Settings</span>
+                                <small>Configure application</small>
+                            </a>
+                            <a href="#" class="action-btn" data-action="backup">
+                                <i class="fas fa-database"></i>
+                                <span>Database Data</span>
+                                <small>All Data of user</small>
+                            </a>
+                            <a href="#" class="action-btn" data-action="security">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>Security</span>
+                                <small>Manage security settings</small>
+                            </a>
+                            <a href="#" class="action-btn" data-action="notifications">
+                                <i class="fas fa-bell"></i>
+                                <span>Notifications</span>
+                                <small>Configure alerts</small>
+                            </a>
+                            <a href="#" class="action-btn" data-action="logs">
+                                <i class="fas fa-clipboard-list"></i>
+                                <span>System Logs</span>
+                                <small>View activity logs</small>
+                            </a>
+                            <a href="#" class="action-btn" data-action="email">
+                                <i class="fas fa-envelope"></i>
+                                <span>Email Templates</span>
+                                <small>Manage email content</small>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Detail Modal -->
+    <div class="modal-overlay" id="messageModal">
+        <div class="message-modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-envelope"></i> Message Details</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Message details will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="deleteUserModal">
+        <div class="message-modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-times"></i> Delete User Account</h2>
+                <button class="close-modal">&times;</button>
+                <div id="deleteHeaderProgress" class="modal-progress"></div>
+            </div>
+            <div class="modal-body">
+                <p>Please select a reason for deleting this user account:</p>
+                <form id="deleteUserForm">
+                    <input type="hidden" id="deleteUserId" value="">
+                    <div style="margin: 15px 0;">
+                        <div style="margin-bottom: 10px;">
+                            <input type="radio" id="reason1" name="deleteReason" value="Violation of terms of service" required>
+                            <label for="reason1">Violation of terms of service</label>
+                        </div>
+                        <div style="margin-bottom: 10px;">
+                            <input type="radio" id="reason2" name="deleteReason" value="Inappropriate content">
+                            <label for="reason2">Inappropriate content</label>
+                        </div>
+                        <div style="margin-bottom: 10px;">
+                            <input type="radio" id="reason3" name="deleteReason" value="Suspicious activity">
+                            <label for="reason3">Suspicious activity</label>
+                        </div>
+                        <div style="margin-bottom: 10px;">
+                            <input type="radio" id="reason4" name="deleteReason" value="User request">
+                            <label for="reason4">User request</label>
+                        </div>
+                        <div style="margin-bottom: 10px;">
+                            <input type="radio" id="reason5" name="deleteReason" value="Other">
+                            <label for="reason5">Other</label>
+                        </div>
+                        <div id="customReasonContainer" style="margin-top: 10px; display: none;">
+                            <textarea id="customReason" placeholder="Please specify reason..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; resize: vertical;"></textarea>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 20px;">
+                        <div id="deleteProgress" style="display:none; color:#dc3545; font-weight:600;">
+                            <i class="fas fa-spinner fa-spin"></i> Deleting user... Please wait
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <button id="cancelDeleteBtn" type="button" class="logout-btn" style="background: #6c757d; padding: 10px 20px;" onclick="closeDeleteModal()">Cancel</button>
+                            <button id="confirmDeleteBtn" type="submit" class="logout-btn" style="padding: 10px 20px;">Confirm Delete</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div class="modal-overlay" id="addUserModal">
+        <div class="message-modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-plus"></i> Add User</h2>
+                <button class="close-modal">&times;</button>
+                <div id="addUserHeaderProgress" class="modal-progress"></div>
+            </div>
+            <div class="modal-body">
+                <form id="addUserForm">
+                    <div class="form-group">
+                        <label for="addUsername"><i class="fas fa-user"></i> Username</label>
+                        <input type="text" id="addUsername" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="addEmail"><i class="fas fa-envelope"></i> Email</label>
+                        <input type="email" id="addEmail" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="addPassword"><i class="fas fa-lock"></i> Password</label>
+                        <input type="password" id="addPassword" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="addStatus"><i class="fas fa-check-circle"></i> Status</label>
+                        <select id="addStatus" class="form-select">
+                            <option value="Active" selected>Active</option>
+                            <option value="Suspended">Suspended</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 20px;">
+                        <div id="addUserProgress" style="display:none; color:#6e8efb; font-weight:600;">
+                            <i class="fas fa-spinner fa-spin"></i> Creating user... Please wait
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <button id="cancelAddUserBtn" type="button" class="logout-btn" style="background:#6c757d; padding:10px 20px;" onclick="closeAddUserModal()">Cancel</button>
+                            <button id="submitAddUserBtn" type="submit" class="logout-btn" style="background:#6e8efb; padding:10px 20px;">Create User</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="message-modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-cogs"></i> System Settings</h2>
+                <button class="close-modal">&times;</button>
+                <div id="settingsHeaderProgress" class="modal-progress"></div>
+            </div>
+            <div class="modal-body">
+                <form id="settingsForm">
+                    <div class="form-group">
+                        <label for="setSiteName"><i class="fas fa-tag"></i> Site Name</label>
+                        <input type="text" id="setSiteName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="setSenderEmail"><i class="fas fa-envelope"></i> Sender Email</label>
+                        <input type="email" id="setSenderEmail" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-server"></i> SMTP</label>
+                        <div style="display:flex; gap:10px;">
+                            <input type="text" id="setSmtpServer" class="form-control" placeholder="smtp.gmail.com">
+                            <input type="number" id="setSmtpPort" class="form-control" placeholder="587">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="setGoogleClientId"><i class="fab fa-google"></i> Google Client ID</label>
+                        <input type="text" id="setGoogleClientId" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="setGoogleRedirect"><i class="fas fa-link"></i> Google Redirect URI</label>
+                        <input type="url" id="setGoogleRedirect" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-user-check"></i> Require OTP on Registration</label>
+                        <select id="setReqOtp" class="form-select">
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; justify-content: space-between; align-items:center; gap:10px;">
+                        <div id="settingsProgress" style="display:none; color:#6e8efb; font-weight:600;"><i class="fas fa-spinner fa-spin"></i> Saving settings...</div>
+                        <div style="display:flex; gap:10px;">
+                            <button id="cancelSettingsBtn" type="button" class="logout-btn" style="background:#6c757d; padding:10px 20px;" onclick="closeSettingsModal()">Cancel</button>
+                            <button id="saveSettingsBtn" type="submit" class="logout-btn" style="background:#6e8efb; padding:10px 20px;">Save Settings</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Profile Picture Modal -->
+    <div class="modal-overlay" id="profilePicModal">
+        <div class="message-modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-circle"></i> Manage Profile Picture</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="currentProfilePic" style="text-align: center; margin-bottom: 20px;"></div>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <input type="file" id="profilePicInput" accept="image/*" style="display: none;">
+                    <button onclick="document.getElementById('profilePicInput').click()" class="btn-primary">Upload New Picture</button>
+                    <button onclick="removeProfilePic()" class="logout-btn" style="background: #dc3545;">Remove Picture</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap data (serialized JSON) -->
+    <script type="application/json" id="bootstrapUsers">{{ users | tojson }}</script>
+    <script type="application/json" id="bootstrapMessages">{{ messages | tojson }}</script>
+    <script type="application/json" id="bootstrapGroups">{{ groups | tojson }}</script>
+
+    <script>
+        // Redirect to admin login if any admin fetch returns 401
+        (function(){
+            const _fetch = window.fetch;
+            window.fetch = function(url, opts){
+                return _fetch(url, opts).then(res => {
+                    try {
+                        if (res && res.status === 401 && String(url).startsWith('/admin/')) {
+                            window.location.href = '/admin_login';
+                            throw new Error('Unauthorized');
+                        }
+                    } catch(e) {}
+                    return res;
+                });
+            };
+        })();
+        // Realtime updates for admin dashboard chart
+        (function(){
+            const s = document.createElement('script');
+            s.src = 'https://cdn.socket.io/4.7.5/socket.io.min.js';
+            s.onload = () => {
+                try {
+                    const sock = io();
+                    sock.on('presence', () => { try{ initActivityChart(); }catch(e){} });
+                    sock.on('new_message', () => { try{ initActivityChart(); }catch(e){} });
+                    sock.on('friend_request', () => { try{ initActivityChart(); }catch(e){} });
+                    sock.on('friend_request_update', () => { try{ initActivityChart(); }catch(e){} });
+                } catch(e) { /* ignore */ }
+            };
+            document.head.appendChild(s);
+        })();
+        // Load Chart.js dynamically (CDN)
+        (function(){
+            const s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+            document.head.appendChild(s);
+        })();
+        // Constants
+        const ITEMS_PER_PAGE = 10;
+        
+        // DOM Elements
+        const sidebarLinks = document.querySelectorAll('.sidebar-menu a');
+        const contentSections = document.querySelectorAll('.content-section');
+        const currentSectionTitle = document.getElementById('currentSectionTitle');
+        const searchInput = document.getElementById('searchUsers');
+        const toggleViewBtn = document.getElementById('toggleView');
+        const usersTableBody = document.getElementById('usersTableBody');
+        const usersPagination = document.getElementById('usersPagination');
+        const usersPaginationInfo = document.getElementById('usersPaginationInfo');
+        const messagesTableBody = document.getElementById('messagesTableBody');
+        const messagesPagination = document.getElementById('messagesPagination');
+        const messagesPaginationInfo = document.getElementById('messagesPaginationInfo');
+        const groupsTableBody = document.getElementById('groupsTableBody');
+        const groupsPagination = document.getElementById('groupsPagination');
+        const groupsPaginationInfo = document.getElementById('groupsPaginationInfo');
+        const profilePicModal = document.getElementById('profilePicModal');
+        const profilePicInput = document.getElementById('profilePicInput');
+        const messageModal = document.getElementById('messageModal');
+        const modalBody = document.getElementById('modalBody');
+        const closeModalBtn = document.querySelector('.close-modal');
+        const editUserForm = document.getElementById('editUserForm');
+        const editUserModal = document.getElementById('editUserModal');
+        const toast = document.getElementById('toast');
+        const addUserModal = document.getElementById('addUserModal');
+        const addUserForm = document.getElementById('addUserForm');
+        const openAddUser = document.getElementById('openAddUser');
+        const settingsModal = document.getElementById('settingsModal');
+        const settingsForm = document.getElementById('settingsForm');
+
+        // Delete modal elements
+        const deleteUserModal = document.getElementById('deleteUserModal');
+        const deleteUserForm = document.getElementById('deleteUserForm');
+        const deleteUserId = document.getElementById('deleteUserId');
+        const customReasonContainer = document.getElementById('customReasonContainer');
+        const customReason = document.getElementById('customReason');
+        const reasonRadios = document.querySelectorAll('input[name="deleteReason"]');
+
+        // State variables
+        let currentUsersPage = 1;
+        let currentMessagesPage = 1;
+        let currentGroupsPage = 1;
+        let filteredUsers = [];
+        let filteredMessages = [];
+        let filteredGroups = [];
+        let currentEditingUserId = null;
+
+        // Data from server (parsed from JSON script tags)
+        const usersRaw = JSON.parse(document.getElementById('bootstrapUsers').textContent);
+        const usersData = usersRaw.map(u => ({ id: String(u[0]), username: u[1], email: u[2], status: u[3] || 'Active' }));
+        const messagesRaw = JSON.parse(document.getElementById('bootstrapMessages').textContent);
+        const messagesData = messagesRaw.map(m => ({ id: String(m[0]), name: m[1], email: m[2], subject: m[3], message: m[4], date: m[5] }));
+        const groupsRaw = JSON.parse(document.getElementById('bootstrapGroups').textContent);
+        const groupsData = groupsRaw.map(g => ({ id: String(g[0]), name: g[1], description: g[2], creator_id: g[3], created_at: g[4] }));
+
+        // Initialize
+        filteredUsers = [...usersData];
+        filteredMessages = [...messagesData];
+        filteredGroups = [...groupsData];
+
+        // Event Listeners for sidebar navigation
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Remove active class from all links
+                sidebarLinks.forEach(l => l.classList.remove('active'));
+                
+                // Add active class to clicked link
+                this.classList.add('active');
+                
+                // Hide all content sections
+                contentSections.forEach(section => section.classList.remove('active'));
+                
+                // Show the selected section
+                const sectionId = this.getAttribute('data-section');
+                if (sectionId) {
+                    document.getElementById(sectionId).classList.add('active');
+                    currentSectionTitle.textContent = this.textContent;
+                    
+                    // Show/hide search and toggle buttons based on section
+                    if (sectionId === 'users-section') {
+                        searchInput.style.display = 'inline-block';
+                        toggleViewBtn.style.display = 'inline-block';
+                        toggleViewBtn.textContent = 'Show All Users';
+                        renderUsersTable(currentUsersPage);
+                    } else if (sectionId === 'groups-section') {
+                        searchInput.style.display = 'none';
+                        toggleViewBtn.style.display = 'inline-block';
+                        toggleViewBtn.textContent = 'Show All Groups';
+                        renderGroupsTable(currentGroupsPage);
+                    } else if (sectionId === 'messages-section') {
+                        searchInput.style.display = 'none';
+                        toggleViewBtn.style.display = 'inline-block';
+                        toggleViewBtn.textContent = 'Show All Messages';
+                        renderMessagesTable(currentMessagesPage);
+                    } else {
+                        searchInput.style.display = 'none';
+                        toggleViewBtn.style.display = 'none';
+                    }
+                }
+            });
+        });
+        // Open Add User Modal
+        if (openAddUser) {
+            openAddUser.addEventListener('click', function(e) {
+                e.preventDefault();
+                addUserForm.reset();
+                setAddUserLoading(false);
+                addUserModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+        }
+
+        // Backup: offer download
+        function triggerBackupDownload() {
+            const a = document.createElement('a');
+            a.href = '/admin/backup/download';
+            a.download = 'backup.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // Security details view
+        function showSecurityDetails(rpt) {
+            const html = `
+                <div class="message-detail"><h3><i class="fas fa-shield-alt"></i> Summary</h3></div>
+                <div class="message-detail"><p>Missing/empty passwords: ${rpt.password_missing_or_empty}</p></div>
+                <div class="message-detail"><p>Unverified accounts: ${rpt.unverified_accounts}</p></div>
+                <div class="message-detail"><p>Inactive accounts: ${rpt.inactive_accounts}</p></div>
+                <div class="message-detail"><p>Suspended accounts: ${rpt.suspended_accounts}</p></div>
+            `;
+            modalBody.innerHTML = html;
+            document.querySelector('#messageModal .modal-header h2').innerHTML = '<i class="fas fa-shield-alt"></i> Security Report';
+            messageModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Notifications: small form in modal
+        function openNotificationTest() {
+            const html = `
+                <div class="form-group">
+                    <label for="notifyTestEmail"><i class="fas fa-envelope"></i> Send test email to</label>
+                    <input type="email" id="notifyTestEmail" class="form-control" placeholder="you@example.com">
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:10px;">
+                    <button id="sendTestBtn" class="logout-btn" style="background:#6e8efb; padding:8px 16px;">Send Test</button>
+                </div>
+            `;
+            modalBody.innerHTML = html;
+            document.querySelector('#messageModal .modal-header h2').innerHTML = '<i class="fas fa-bell"></i> Send Test Notification';
+            messageModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            document.getElementById('sendTestBtn').addEventListener('click', function() {
+                const to = document.getElementById('notifyTestEmail').value.trim();
+                if (!to) { showToast('Enter recipient email','error'); return; }
+                fetch('/admin/notifications/send-test', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ to }) })
+                    .then(r=>r.json()).then(d=>{
+                        if (d.success) { showToast('Test email sent','success'); } else { showToast(d.message||'Failed','error'); }
+                    }).catch(()=>showToast('Failed to send','error'));
+            });
+        }
+
+        // Email templates editor modal
+        function openTemplatesModal() {
+            modalBody.innerHTML = '<div class="message-detail"><p>Loading templates...</p></div>';
+            document.querySelector('#messageModal .modal-header h2').innerHTML = '<i class="fas fa-envelope"></i> Email Templates';
+            messageModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            fetch('/admin/email-templates')
+                .then(r=>r.json()).then(d=>{
+                    if (!d.success) { showToast('Failed to load templates','error'); return; }
+                    const t = d.templates;
+                    const html = `
+                        <div class="form-group">
+                            <label>Deletion</label>
+                            <textarea id="tmplDeletion" class="form-control" style="min-height:100px;">${t.deletion}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Update Notification</label>
+                            <textarea id="tmplUpdate" class="form-control" style="min-height:100px;">${t.update_notification}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>OTP</label>
+                            <textarea id="tmplOtp" class="form-control" style="min-height:100px;">${t.otp}</textarea>
+                        </div>
+                        <div style="display:flex; justify-content:flex-end; gap:10px;">
+                            <button id="saveTemplatesBtn" class="logout-btn" style="background:#6e8efb; padding:8px 16px;">Save Templates</button>
+                        </div>
+                    `;
+                    modalBody.innerHTML = html;
+                    document.getElementById('saveTemplatesBtn').addEventListener('click', function(){
+                        const payload = {
+                            deletion: document.getElementById('tmplDeletion').value,
+                            update_notification: document.getElementById('tmplUpdate').value,
+                            otp: document.getElementById('tmplOtp').value
+                        };
+                        fetch('/admin/email-templates', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })
+                            .then(r=>r.json()).then(d=>{
+                                if (d.success) { showToast('Templates saved','success'); } else { showToast('Failed to save','error'); }
+                            }).catch(()=>showToast('Failed to save','error'));
+                    });
+                }).catch(()=>showToast('Failed to load templates','error'));
+        }
+        function closeAddUserModal() {
+            addUserModal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        document.querySelector('#addUserModal .close-modal').addEventListener('click', closeAddUserModal);
+        addUserModal.addEventListener('click', function(e) {
+            if (e.target === addUserModal) closeAddUserModal();
+        });
+
+        // Submit Add User
+        addUserForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('addUsername').value.trim();
+            const email = document.getElementById('addEmail').value.trim();
+            const password = document.getElementById('addPassword').value;
+            const status = document.getElementById('addStatus').value;
+
+            if (!username || !email || !password) {
+                showToast('Please fill in all required fields', 'error');
+                return;
+            }
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showToast('Please enter a valid email address', 'error');
+                return;
+            }
+
+            setAddUserLoading(true);
+            const formData = new FormData();
+            formData.append('username', username);
+            formData.append('email', email);
+            formData.append('password', password);
+            formData.append('status', status);
+
+            fetch('/admin/add-user', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Update local dataset and UI
+                    const newUser = data.user;
+                    usersData.push(newUser);
+                    filteredUsers = [...usersData];
+                    renderUsersTable(currentUsersPage);
+                    showToast('User created successfully', 'success');
+                    // Small success delay for polish
+                    setTimeout(() => {
+                        closeAddUserModal();
+                    }, 400);
+                } else {
+                    showToast(data.message || 'Failed to create user', 'error');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast('Error creating user', 'error');
+            })
+            .finally(() => {
+                setAddUserLoading(false);
+            });
+        });
+
+        function setAddUserLoading(isLoading) {
+            const submitBtn = document.getElementById('submitAddUserBtn');
+            const cancelBtn = document.getElementById('cancelAddUserBtn');
+            const progress = document.getElementById('addUserProgress');
+            const headerProgress = document.getElementById('addUserHeaderProgress');
+            if (isLoading) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+                cancelBtn.disabled = true;
+                progress.style.display = 'block';
+                headerProgress.classList.add('active');
+            } else {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Create User';
+                cancelBtn.disabled = false;
+                progress.style.display = 'none';
+                headerProgress.classList.remove('active');
+            }
+        }
+
+        // Admin action buttons
+        document.querySelectorAll('.action-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const action = this.getAttribute('data-action');
+                if (!action) return;
+                switch (action) {
+                    case 'analytics':
+                        // Navigate to analytics section
+                        document.querySelectorAll('.sidebar-menu a').forEach(l => l.classList.remove('active'));
+                        document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
+                        document.getElementById('analytics-section').classList.add('active');
+                        currentSectionTitle.textContent = 'System Analytics';
+                        searchInput.style.display = 'none';
+                        toggleViewBtn.style.display = 'none';
+                        setTimeout(loadAnalytics, 100);
+                        break;
+                    case 'system-settings':
+                        openSettingsModal();
+                        break;
+                    case 'backup':
+                        fetch('/admin/backup/export').then(r=>r.json()).then(d=>{
+                            if (d.success) {
+                                const size = JSON.stringify(d.export).length;
+                                showModalSummary('Backup Export', [
+                                    `Users: ${d.export.users.length}`,
+                                    `Messages: ${d.export.contact_messages.length}`,
+                                    `Friend requests: ${d.export.friend_requests.length}`,
+                                    `Login logs: ${d.export.login_logs.length}`,
+                                    `Payload size: ~${Math.round(size/1024)} KB`
+                                ]);
+                                // Add download button
+                                const dl = document.createElement('div');
+                                dl.style.textAlign = 'right';
+                                dl.innerHTML = '<button id="downloadBackupBtn" class="logout-btn" style="background:#6e8efb; padding:8px 16px;">Download JSON</button>';
+                                modalBody.appendChild(dl);
+                                document.getElementById('downloadBackupBtn').addEventListener('click', triggerBackupDownload);
+                            } else { showToast('Backup failed','error'); }
+                        }).catch(()=>showToast('Backup failed','error'));
+                        break;
+                    case 'security':
+                        fetch('/admin/security-report').then(r=>r.json()).then(d=>{
+                            if (d.success) {
+                                showSecurityDetails(d.report);
+                            } else { showToast('Security report failed','error'); }
+                        }).catch(()=>showToast('Security report failed','error'));
+                        break;
+                    case 'notifications':
+                        openNotificationsCenter();
+                        break;
+                    case 'logs':
+                        openLogsModal();
+                        break;
+                    case 'email':
+                        openTemplatesModal();
+                        break;
+                    default:
+                        showToast('Unknown action','error');
+                }
+            });
+        });
+
+        function showModalSummary(title, lines) {
+            const content = lines.map(l=>`<div class="message-detail"><p>${l}</p></div>`).join('');
+            modalBody.innerHTML = content;
+            document.querySelector('#messageModal .modal-header h2').innerHTML = `<i class="fas fa-info-circle"></i> ${title}`;
+            messageModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function openLogsModal() {
+            const html = `
+                <div style="display:flex; gap:10px; margin-bottom:12px;">
+                    <button class="btn-primary" id="tabLogin">Login Logs</button>
+                    <button class="btn-primary" id="tabFriend">Friend Requests</button>
+                    <button class="btn-primary" id="tabMsg">Contact Messages</button>
+                </div>
+                <div id="logsContainer" class="message-detail"><p>Loading...</p></div>
+                <div style="display:flex; justify-content: space-between; align-items:center; margin-top:10px;">
+                    <div id="logsInfo" class="pagination-info"></div>
+                    <div>
+                        <button class="pagination-btn" id="prevLogs">Prev</button>
+                        <button class="pagination-btn" id="nextLogs">Next</button>
+                    </div>
+                </div>
+            `;
+            modalBody.innerHTML = html;
+            document.querySelector('#messageModal .modal-header h2').innerHTML = '<i class="fas fa-clipboard-list"></i> System Logs';
+            messageModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+
+            let currentType = 'login';
+            let offset = 0;
+            const limit = 25;
+
+            function renderRows(rows) {
+                if (!rows.length) { return '<div class="message-detail"><p>No records.</p></div>'; }
+                if (currentType === 'login') {
+                    return rows.map(r=>`<div class="message-detail"><p>#${r[0]} | user_id=${r[1]} | date=${r[2]}</p></div>`).join('');
+                } else if (currentType === 'friend') {
+                    return rows.map(r=>`<div class="message-detail"><p>#${r[0]} | ${r[1]} → ${r[2]} | ${r[3]} | ${r[4]}</p></div>`).join('');
+                } else {
+                    return rows.map(r=>`<div class="message-detail"><p>#${r[0]} | ${r[1]} (${r[2]}) | ${r[3]} | ${r[4]}</p></div>`).join('');
+                }
+            }
+
+            function loadLogs() {
+                document.getElementById('logsContainer').innerHTML = '<div class="message-detail"><p>Loading...</p></div>';
+                fetch(`/admin/logs/list?type=${currentType}&offset=${offset}&limit=${limit}`)
+                    .then(r=>r.json()).then(d=>{
+                        if (!d.success) { document.getElementById('logsContainer').innerHTML = '<div class="message-detail"><p>Failed to load.</p></div>'; return; }
+                        document.getElementById('logsContainer').innerHTML = renderRows(d.rows);
+                        const end = Math.min(d.offset + d.rows.length, d.total);
+                        document.getElementById('logsInfo').textContent = `Showing ${d.offset + 1} - ${end} of ${d.total}`;
+                        document.getElementById('prevLogs').disabled = d.offset <= 0;
+                        document.getElementById('nextLogs').disabled = end >= d.total;
+                    })
+                    .catch(()=>{ document.getElementById('logsContainer').innerHTML = '<div class="message-detail"><p>Failed to load.</p></div>'; });
+            }
+
+            document.getElementById('tabLogin').addEventListener('click', ()=>{ currentType='login'; offset=0; loadLogs(); });
+            document.getElementById('tabFriend').addEventListener('click', ()=>{ currentType='friend'; offset=0; loadLogs(); });
+            document.getElementById('tabMsg').addEventListener('click', ()=>{ currentType='message'; offset=0; loadLogs(); });
+            document.getElementById('prevLogs').addEventListener('click', ()=>{ offset=Math.max(0, offset-limit); loadLogs(); });
+            document.getElementById('nextLogs').addEventListener('click', ()=>{ offset=offset+limit; loadLogs(); });
+
+            loadLogs();
+        }
+        function openSettingsModal() {
+            // load settings
+            setSettingsLoading(true);
+            fetch('/admin/system-settings')
+                .then(r=>r.json())
+                .then(d=>{
+                    if (d.success) {
+                        const s = d.settings;
+                        document.getElementById('setSiteName').value = s.site_name || '';
+                        document.getElementById('setSenderEmail').value = s.sender_email || '';
+                        document.getElementById('setSmtpServer').value = s.smtp_server || '';
+                        document.getElementById('setSmtpPort').value = s.smtp_port || '';
+                        document.getElementById('setGoogleClientId').value = s.google_client_id || '';
+                        document.getElementById('setGoogleRedirect').value = s.google_redirect_uri || '';
+                        document.getElementById('setReqOtp').value = s.registration_required_otp ? 'true' : 'false';
+                        settingsModal.classList.add('active');
+                        document.body.style.overflow = 'hidden';
+                    } else {
+                        showToast('Failed to load settings', 'error');
+                    }
+                })
+                .catch(()=>showToast('Failed to load settings', 'error'))
+                .finally(()=>setSettingsLoading(false));
+        }
+
+        function closeSettingsModal() {
+            settingsModal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        document.querySelector('#settingsModal .close-modal').addEventListener('click', closeSettingsModal);
+        settingsModal.addEventListener('click', function(e){ if (e.target === settingsModal) closeSettingsModal(); });
+
+        settingsForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const payload = {
+                site_name: document.getElementById('setSiteName').value.trim(),
+                sender_email: document.getElementById('setSenderEmail').value.trim(),
+                smtp_server: document.getElementById('setSmtpServer').value.trim(),
+                smtp_port: document.getElementById('setSmtpPort').value,
+                google_client_id: document.getElementById('setGoogleClientId').value.trim(),
+                google_redirect_uri: document.getElementById('setGoogleRedirect').value.trim(),
+                registration_required_otp: document.getElementById('setReqOtp').value
+            };
+            if (!payload.site_name) {
+                showToast('Site name is required', 'error');
+                return;
+            }
+            setSettingsLoading(true);
+            fetch('/admin/system-settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(r=>r.json()).then(d=>{
+                if (d.success) {
+                    showToast('Settings updated', 'success');
+                    setTimeout(()=> closeSettingsModal(), 400);
+                } else {
+                    showToast(d.message || 'Failed to update settings', 'error');
+                }
+            }).catch(()=>showToast('Failed to update settings', 'error'))
+            .finally(()=>setSettingsLoading(false));
+        });
+
+        function setSettingsLoading(isLoading) {
+            const saveBtn = document.getElementById('saveSettingsBtn');
+            const cancelBtn = document.getElementById('cancelSettingsBtn');
+            const progress = document.getElementById('settingsProgress');
+            const headerProgress = document.getElementById('settingsHeaderProgress');
+            if (isLoading) {
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                cancelBtn.disabled = true;
+                progress.style.display = 'block';
+                headerProgress.classList.add('active');
+            } else {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = 'Save Settings';
+                cancelBtn.disabled = false;
+                progress.style.display = 'none';
+                headerProgress.classList.remove('active');
+            }
+        }
+
+        // Backup: offer download
+        function triggerBackupDownload() {
+            const a = document.createElement('a');
+            a.href = '/admin/backup/download';
+            a.download = 'backup.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // Security details view
+        function showSecurityDetails(rpt) {
+            const html = `
+                <div class="message-detail"><h3><i class="fas fa-shield-alt"></i> Summary</h3></div>
+                <div class="message-detail"><p>Missing/empty passwords: ${rpt.password_missing_or_empty}</p></div>
+                <div class="message-detail"><p>Unverified accounts: ${rpt.unverified_accounts}</p></div>
+                <div class="message-detail"><p>Inactive accounts: ${rpt.inactive_accounts}</p></div>
+                <div class="message-detail"><p>Suspended accounts: ${rpt.suspended_accounts}</p></div>
+            `;
+            modalBody.innerHTML = html;
+            document.querySelector('#messageModal .modal-header h2').innerHTML = '<i class="fas fa-shield-alt"></i> Security Report';
+            messageModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Notifications Center
+        function openNotificationsCenter() {
+            const html = `
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> Select User (optional)</label>
+                    <select id="notifyUserId" class="form-select">
+                        <option value="">-- None --</option>
+                        ${usersData.map(u=>`<option value="${u.id}">${u.username} (${u.email})</option>`).join('')}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="notifyEmail"><i class="fas fa-envelope"></i> Or Email</label>
+                    <input type="email" id="notifyEmail" class="form-control" placeholder="user@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="notifySubject"><i class="fas fa-heading"></i> Subject</label>
+                    <input type="text" id="notifySubject" class="form-control" placeholder="Subject">
+                </div>
+                <div class="form-group">
+                    <label for="notifyBody"><i class="fas fa-comment"></i> Message</label>
+                    <textarea id="notifyBody" class="form-control" style="min-height:120px;" placeholder="Write your message"></textarea>
+                </div>
+                <div style="display:flex; justify-content: space-between; align-items:center; gap:10px;">
+                    <div id="notifyProgress" style="display:none; color:#6e8efb; font-weight:600;"><i class="fas fa-spinner fa-spin"></i> Sending...</div>
+                    <div style="display:flex; gap:10px;">
+                        <button id="notifySendBtn" class="logout-btn" style="background:#6e8efb; padding:8px 16px;">Send</button>
+                        <button id="notifyTestBtn" class="logout-btn" style="background:#17a2b8; padding:8px 16px;">Send Test</button>
+                    </div>
+                </div>
+                <hr style="margin:16px 0;">
+                <div class="message-detail"><h3><i class="fas fa-list"></i> Recent Notifications</h3></div>
+                <div id="notifyList">Loading...</div>
+            `;
+            modalBody.innerHTML = html;
+            document.querySelector('#messageModal .modal-header h2').innerHTML = '<i class="fas fa-bell"></i> Notifications';
+            messageModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+
+            function setNotifyLoading(isLoading) {
+                const sendBtn = document.getElementById('notifySendBtn');
+                const testBtn = document.getElementById('notifyTestBtn');
+                const prog = document.getElementById('notifyProgress');
+                if (isLoading) {
+                    sendBtn.disabled = true; testBtn.disabled = true; prog.style.display = 'block';
+                } else {
+                    sendBtn.disabled = false; testBtn.disabled = false; prog.style.display = 'none';
+                }
+            }
+
+            // Load recent notifications
+            fetch('/admin/notifications/list').then(r=>r.json()).then(d=>{
+                if (!d.success) { document.getElementById('notifyList').textContent = 'Failed to load.'; return; }
+                const rows = d.notifications;
+                if (!rows.length) { document.getElementById('notifyList').textContent = 'No notifications yet.'; return; }
+                const html = rows.map(r=>`<div class="message-detail"><p>#${r[0]} → ${r[2]} | ${r[3]} | ${r[4]} | ${r[5]}</p></div>`).join('');
+                document.getElementById('notifyList').innerHTML = html;
+            }).catch(()=>{ document.getElementById('notifyList').textContent = 'Failed to load.'; });
+
+            document.getElementById('notifyTestBtn').addEventListener('click', function(){
+                const to = document.getElementById('notifyEmail').value.trim();
+                if (!to) { showToast('Enter recipient email','error'); return; }
+                setNotifyLoading(true);
+                fetch('/admin/notifications/send-test', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ to }) })
+                    .then(r=>r.json()).then(d=>{
+                        if (d.success) { showToast('Test email sent','success'); } else { showToast(d.message||'Failed','error'); }
+                    }).catch(()=>showToast('Failed to send','error'))
+                    .finally(()=>setNotifyLoading(false));
+            });
+
+            document.getElementById('notifySendBtn').addEventListener('click', function(){
+                const user_id = document.getElementById('notifyUserId').value;
+                const email = document.getElementById('notifyEmail').value.trim();
+                const subject = document.getElementById('notifySubject').value.trim();
+                const message = document.getElementById('notifyBody').value.trim();
+                if (!subject || !message) { showToast('Subject and message are required','error'); return; }
+                if (!user_id && !email) { showToast('Select a user or enter an email','error'); return; }
+                setNotifyLoading(true);
+                fetch('/admin/notifications/send', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id, email, subject, message }) })
+                    .then(r=>r.json()).then(d=>{
+                        if (d.success) { showToast('Notification sent','success'); }
+                        else { showToast(d.message||'Notification failed','error'); }
+                        // refresh list
+                        return fetch('/admin/notifications/list').then(r=>r.json());
+                    })
+                    .then(d=>{
+                        if (d && d.success) {
+                            const rows = d.notifications;
+                            const html = rows.map(r=>`<div class=\"message-detail\"><p>#${r[0]} → ${r[2]} | ${r[3]} | ${r[4]} | ${r[5]}</p></div>`).join('');
+                            document.getElementById('notifyList').innerHTML = html;
+                        }
+                    })
+                    .catch(()=>{})
+                    .finally(()=>setNotifyLoading(false));
+            });
+        }
+        // Event Listeners for radio buttons
+        reasonRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                customReasonContainer.style.display = this.value === 'Other' ? 'block' : 'none';
+                if (this.value !== 'Other') {
+                    customReason.value = '';
+                }
+            });
+        });
+
+        // Form submission
+        deleteUserForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const userId = deleteUserId.value;
+            let reason = document.querySelector('input[name="deleteReason"]:checked').value;
+            
+            if (reason === 'Other') {
+                reason = customReason.value;
+                if (!reason.trim()) {
+                    alert('Please specify a reason for deletion.');
+                    return;
+                }
+            }
+            
+            // Call the function to delete user with reason
+            confirmDeleteUser(userId, reason);
+        });
+
+        // Edit user form submission
+        editUserForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const userId = document.getElementById('editUserId').value;
+            const username = document.getElementById('editUsername').value;
+            const email = document.getElementById('editEmail').value;
+            const password = document.getElementById('editPassword').value;
+            const status = document.getElementById('editStatus').value;
+            
+            updateUser(userId, username, email, password, status);
+        });
+
+        // Search functionality
+        searchInput.addEventListener('input', function () {
+            const searchTerm = this.value.toLowerCase();
+            filteredUsers = usersData.filter(user => 
+                user.username.toLowerCase().includes(searchTerm) || 
+                user.email.toLowerCase().includes(searchTerm)
+            );
+            currentUsersPage = 1;
+            renderUsersTable(currentUsersPage);
+        });
+
+        // Pagination functions
+        function renderUsersTable(page) {
+            const startIndex = (page - 1) * ITEMS_PER_PAGE;
+            const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, filteredUsers.length);
+            const pageUsers = filteredUsers.slice(startIndex, endIndex);
+            
+            usersTableBody.innerHTML = '';
+            
+            if (pageUsers.length === 0) {
+                usersTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 20px; color: #7f8c8d;">
+                            No users found
+                        </td>
+                    </tr>
+                `;
+            } else {
+                pageUsers.forEach(user => {
+                    const row = document.createElement('tr');
+                    row.className = 'user-row';
+                    row.innerHTML = `
+                        <td>${user.id}</td>
+                        <td><div onclick="openProfilePicModal('${user.id}')" style="width: 40px; height: 40px; border-radius: 50%; background: #f0f0f0; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid #ddd;" id="userPic${user.id}"><i class="fas fa-user" style="color: #999;"></i></div></td>
+                        <td>${user.username}</td>
+                        <td>${user.email}</td>
+                        <td><span style="color: #27ae60; font-weight: 600;">${user.status}</span></td>
+                        <td>
+                            <button onclick="viewUser('${user.id}')" 
+                                    style="background: #17a2b8; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; margin-right: 5px;">View</button>
+                            <button onclick="editUser('${user.id}')"
+                                    style="background: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; margin-right: 5px;">Edit</button>
+                            <button onclick="viewBlockList('${user.id}', '${user.username}')"
+                                    style="background: #fd7e14; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; margin-right: 5px;">Block List</button>
+                            <button onclick="openDeleteModal('${user.id}', '${user.username}', '${user.email}')"
+                                    style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">Delete</button>
+                        </td>
+                    `;
+                    usersTableBody.appendChild(row);
+                    
+                    // Load profile picture
+                    fetch(`/admin/user-profile-pic/${user.id}`)
+                        .then(r => r.json())
+                        .then(d => {
+                            if (d.success && d.profile_picture) {
+                                document.getElementById(`userPic${user.id}`).innerHTML = `<img src="${d.profile_picture}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+                            }
+                        })
+                        .catch(() => {});
+                });
+            }
+            
+            renderPagination(usersPagination, page, filteredUsers.length, 'users');
+            usersPaginationInfo.textContent = `Showing ${startIndex + 1} to ${endIndex} of ${filteredUsers.length} users`;
+        }
+
+        function renderMessagesTable(page) {
+            const startIndex = (page - 1) * ITEMS_PER_PAGE;
+            const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, filteredMessages.length);
+            const pageMessages = filteredMessages.slice(startIndex, endIndex);
+            
+            messagesTableBody.innerHTML = '';
+            
+            if (pageMessages.length === 0) {
+                messagesTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 20px; color: #7f8c8d;">
+                            No messages found
+                        </td>
+                    </tr>
+                `;
+            } else {
+                pageMessages.forEach(msg => {
+                    const row = document.createElement('tr');
+                    row.className = 'message-row';
+                    row.setAttribute('data-id', msg.id);
+                    row.innerHTML = `
+                        <td>${msg.name}</td>
+                        <td>${msg.email}</td>
+                        <td>${msg.subject}</td>
+                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${msg.message.substring(0, 50)}...</td>
+                        <td>${msg.date.substring(0, 10)}</td>
+                        <td>
+                            <button onclick="viewMessage('${msg.id}', event)"
+                                class="view-message-btn">View</button>
+                            <button onclick="deleteMessage('${msg.id}')"
+                                style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">Delete</button>
+                        </td>
+                    `;
+                    messagesTableBody.appendChild(row);
+                    
+                    // Add click event to the row
+                    row.addEventListener('click', function(e) {
+                        if (e.target.tagName !== 'BUTTON') {
+                            viewMessage(msg.id, e);
+                        }
+                    });
+                });
+            }
+            
+            renderPagination(messagesPagination, page, filteredMessages.length, 'messages');
+            messagesPaginationInfo.textContent = `Showing ${startIndex + 1} to ${endIndex} of ${filteredMessages.length} messages`;
+        }
+
+        function renderGroupsTable(page) {
+            const startIndex = (page - 1) * ITEMS_PER_PAGE;
+            const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, filteredGroups.length);
+            const pageGroups = filteredGroups.slice(startIndex, endIndex);
+            
+            groupsTableBody.innerHTML = '';
+            
+            if (pageGroups.length === 0) {
+                groupsTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 20px; color: #7f8c8d;">
+                            No groups found
+                        </td>
+                    </tr>
+                `;
+            } else {
+                pageGroups.forEach(group => {
+                    const creator = usersData.find(u => u.id == group.creator_id);
+                    const creatorName = creator ? creator.username : 'Unknown';
+                    const row = document.createElement('tr');
+                    row.className = 'group-row';
+                    row.innerHTML = `
+                        <td>${group.id}</td>
+                        <td>${group.name}</td>
+                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${group.description || 'No description'}</td>
+                        <td>${creatorName}</td>
+                        <td><span id="members-${group.id}">Loading...</span></td>
+                        <td>${group.created_at ? group.created_at.substring(0, 10) : 'N/A'}</td>
+                        <td>
+                            <button onclick="viewGroup('${group.id}')" 
+                                    style="background: #17a2b8; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; margin-right: 5px;">View</button>
+                            <button onclick="deleteGroup('${group.id}', '${group.name}')"
+                                    style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">Delete</button>
+                        </td>
+                    `;
+                    groupsTableBody.appendChild(row);
+                    
+                    // Load member count
+                    fetch(`/groups/${group.id}/members`)
+                        .then(r => r.json())
+                        .then(d => {
+                            if (d.success) {
+                                document.getElementById(`members-${group.id}`).textContent = d.members.length;
+                            } else {
+                                document.getElementById(`members-${group.id}`).textContent = '0';
+                            }
+                        })
+                        .catch(() => {
+                            document.getElementById(`members-${group.id}`).textContent = '0';
+                        });
+                });
+            }
+            
+            renderPagination(groupsPagination, page, filteredGroups.length, 'groups');
+            groupsPaginationInfo.textContent = `Showing ${startIndex + 1} to ${endIndex} of ${filteredGroups.length} groups`;
+        }
+
+        function renderPagination(container, currentPage, totalItems, type) {
+            const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+            container.innerHTML = '';
+            
+            if (totalPages <= 1) return;
+            
+            // Previous button
+            if (currentPage > 1) {
+                const prevBtn = document.createElement('button');
+                prevBtn.className = 'pagination-btn';
+                prevBtn.innerHTML = '&laquo; Prev';
+                prevBtn.addEventListener('click', () => {
+                    if (type === 'users') {
+                        currentUsersPage = currentPage - 1;
+                        renderUsersTable(currentUsersPage);
+                    } else if (type === 'groups') {
+                        currentGroupsPage = currentPage - 1;
+                        renderGroupsTable(currentGroupsPage);
+                    } else {
+                        currentMessagesPage = currentPage - 1;
+                        renderMessagesTable(currentMessagesPage);
+                    }
+                });
+                container.appendChild(prevBtn);
+            }
+            
+            // Page numbers
+            for (let i = 1; i <= totalPages; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.className = `pagination-btn ${i === currentPage ? 'active' : ''}`;
+                pageBtn.textContent = i;
+                pageBtn.addEventListener('click', () => {
+                    if (type === 'users') {
+                        currentUsersPage = i;
+                        renderUsersTable(currentUsersPage);
+                    } else if (type === 'groups') {
+                        currentGroupsPage = i;
+                        renderGroupsTable(currentGroupsPage);
+                    } else {
+                        currentMessagesPage = i;
+                        renderMessagesTable(currentMessagesPage);
+                    }
+                });
+                container.appendChild(pageBtn);
+            }
+            
+            // Next button
+            if (currentPage < totalPages) {
+                const nextBtn = document.createElement('button');
+                nextBtn.className = 'pagination-btn';
+                nextBtn.innerHTML = 'Next &raquo;';
+                nextBtn.addEventListener('click', () => {
+                    if (type === 'users') {
+                        currentUsersPage = currentPage + 1;
+                        renderUsersTable(currentUsersPage);
+                    } else if (type === 'groups') {
+                        currentGroupsPage = currentPage + 1;
+                        renderGroupsTable(currentGroupsPage);
+                    } else {
+                        currentMessagesPage = currentPage + 1;
+                        renderMessagesTable(currentMessagesPage);
+                    }
+                });
+                container.appendChild(nextBtn);
+            }
+        }
+
+        // View message details
+        function viewMessage(id, event) {
+            if (event) event.stopPropagation();
+            
+            const msg = messagesData.find(m => m.id == id);
+            if (!msg) return;
+
+            modalBody.innerHTML = `
+                <div class="message-detail">
+                    <h3><i class="fas fa-user"></i> Name</h3>
+                    <p>${msg.name}</p>
+                </div>
+                <div class="message-detail">
+                    <h3><i class="fas fa-envelope"></i> Email</h3>
+                    <p>${msg.email}</p>
+                </div>
+                <div class="message-detail">
+                    <h3><i class="fas fa-tag"></i> Subject</h3>
+                    <p>${msg.subject}</p>
+                </div>
+                <div class="message-detail">
+                    <h3><i class="fas fa-calendar"></i> Date</h3>
+                    <p>${msg.date}</p>
+                </div>
+                <div class="message-detail">
+                    <h3><i class="fas fa-comment"></i> Message</h3>
+                    <div class="message-content">${msg.message}</div>
+                </div>
+            `;
+
+            messageModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // View user details
+        function viewUser(id) {
+            const user = usersData.find(u => u.id == id);
+            if (!user) return;
+
+            modalBody.innerHTML = `
+                <div class="message-detail">
+                    <h3><i class="fas fa-id-card"></i> User ID</h3>
+                    <p>${user.id}</p>
+                </div>
+                <div class="message-detail">
+                    <h3><i class="fas fa-user"></i> Username</h3>
+                    <p>${user.username}</p>
+                </div>
+                <div class="message-detail">
+                    <h3><i class="fas fa-envelope"></i> Email</h3>
+                    <p>${user.email}</p>
+                </div>
+                <div class="message-detail">
+                    <h3><i class="fas fa-check-circle"></i> Status</h3>
+                    <p>${user.status}</p>
+                </div>
+                <div class="message-detail">
+                    <h3><i class="fas fa-calendar"></i> Registration Date</h3>
+                    <p>N/A</p>
+                </div>
+            `;
+
+            messageModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Edit user
+        function editUser(id) {
+            const user = usersData.find(u => u.id == id);
+            if (!user) return;
+
+            document.getElementById('editUserId').value = user.id;
+            document.getElementById('editUsername').value = user.username;
+            document.getElementById('editEmail').value = user.email;
+            document.getElementById('editStatus').value = user.status;
+            document.getElementById('editPassword').value = '';
+
+            editUserModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Close edit modal
+        function closeEditModal() {
+            editUserModal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Update user in database
+        function updateUser(id, username, email, password, status) {
+            // Prepare data for submission
+            const formData = new FormData();
+            formData.append('id', id);
+            formData.append('username', username);
+            formData.append('email', email);
+            formData.append('status', status);
+            
+            if (password) {
+                formData.append('password', password);
+            }
+
+            // Send update request to server
+            fetch('/admin/update-user', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update local data
+                    const userIndex = usersData.findIndex(u => u.id == id);
+                    if (userIndex !== -1) {
+                        usersData[userIndex].username = username;
+                        usersData[userIndex].email = email;
+                        usersData[userIndex].status = status;
+                        
+                        // Update filtered users if needed
+                        const filteredIndex = filteredUsers.findIndex(u => u.id == id);
+                        if (filteredIndex !== -1) {
+                            filteredUsers[filteredIndex] = usersData[userIndex];
+                        }
+                        
+                        renderUsersTable(currentUsersPage);
+                    }
+                    
+                    closeEditModal();
+                    showToast('User updated successfully!', 'success');
+                } else {
+                    showToast('Error updating user: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error updating user.', 'error');
+            });
+        }
+
+        // Close modal
+        closeModalBtn.addEventListener('click', closeModal);
+        messageModal.addEventListener('click', function (e) {
+            if (e.target === messageModal) closeModal();
+        });
+
+        function closeModal() {
+            messageModal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Open delete modal
+        function openDeleteModal(userId, username, email) {
+            deleteUserId.value = userId;
+            // Update the modal content to show which user is being deleted
+            document.querySelector('#deleteUserModal .modal-header h2').innerHTML = `<i class="fas fa-user-times"></i> Delete User: ${username}`;
+            deleteUserModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            // Reset form
+            deleteUserForm.reset();
+            customReasonContainer.style.display = 'none';
+            // Reset loading UI
+            setDeleteLoading(false);
+        }
+
+        // Close delete modal
+        function closeDeleteModal() {
+            deleteUserModal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Delete user with reason
+        function confirmDeleteUser(id, reason) {
+            // Apply loading UI
+            setDeleteLoading(true, id);
+            fetch('/admin/delete-user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    id: id,
+                    reason: reason 
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove from local data and refresh
+                    const index = usersData.findIndex(u => u.id == id);
+                    if (index !== -1) {
+                        usersData.splice(index, 1);
+                        filteredUsers = [...usersData];
+                        renderUsersTable(currentUsersPage);
+                    }
+                    closeDeleteModal();
+                    showToast('User account deleted successfully.', 'success');
+                } else {
+                    showToast('Error deleting user: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error deleting user.', 'error');
+            })
+            .finally(() => {
+                setDeleteLoading(false, id);
+            });
+        }
+
+        // Helper to toggle loading state during deletion
+        function setDeleteLoading(isLoading, userId) {
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            const cancelBtn = document.getElementById('cancelDeleteBtn');
+            const progress = document.getElementById('deleteProgress');
+            const headerProgress = document.getElementById('deleteHeaderProgress');
+            if (isLoading) {
+                if (confirmBtn) {
+                    confirmBtn.disabled = true;
+                    confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+                }
+                if (cancelBtn) cancelBtn.disabled = true;
+                if (progress) progress.style.display = 'block';
+                if (headerProgress) headerProgress.classList.add('active');
+                // Dim the user row in the table
+                if (userId) {
+                    const rows = usersTableBody.querySelectorAll('tr');
+                    rows.forEach(row => {
+                        const idCell = row.querySelector('td');
+                        if (idCell && idCell.textContent == userId) {
+                            row.classList.add('deleting');
+                        }
+                    });
+                }
+            } else {
+                if (confirmBtn) {
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = 'Confirm Delete';
+                }
+                if (cancelBtn) cancelBtn.disabled = false;
+                if (progress) progress.style.display = 'none';
+                if (headerProgress) headerProgress.classList.remove('active');
+                // Restore any dimmed rows
+                const rows = usersTableBody.querySelectorAll('tr');
+                rows.forEach(row => {
+                    row.classList.remove('deleting');
+                });
+            }
+        }
+
+        function deleteMessage(id) {
+            if (confirm('Delete this message?')) {
+                fetch('/admin/delete-message', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id })
+                }).then(() => {
+                    const index = messagesData.findIndex(m => m.id == id);
+                    if (index !== -1) {
+                        messagesData.splice(index, 1);
+                        filteredMessages = [...messagesData];
+                        renderMessagesTable(currentMessagesPage);
+                    }
+                });
+            }
+        }
+
+        function openProfilePicModal(userId) {
+            currentEditingUserId = userId;
+            
+            // Load current profile picture
+            fetch(`/admin/user-profile-pic/${userId}`)
+                .then(r => r.json())
+                .then(d => {
+                    const currentPicDiv = document.getElementById('currentProfilePic');
+                    if (d.success && d.profile_picture) {
+                        currentPicDiv.innerHTML = `<img src="${d.profile_picture}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #ddd;">`;
+                    } else {
+                        currentPicDiv.innerHTML = `<div style="width: 100px; height: 100px; border-radius: 50%; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border: 3px solid #ddd;"><i class="fas fa-user" style="font-size: 40px; color: #999;"></i></div>`;
+                    }
+                })
+                .catch(() => {});
+            
+            profilePicModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function removeProfilePic() {
+            if (!currentEditingUserId) return;
+            
+            fetch(`/admin/remove-profile-pic/${currentEditingUserId}`, {
+                method: 'POST'
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    showToast('Profile picture removed', 'success');
+                    document.getElementById(`userPic${currentEditingUserId}`).innerHTML = '<i class="fas fa-user" style="color: #999;"></i>';
+                    document.getElementById('currentProfilePic').innerHTML = `<div style="width: 100px; height: 100px; border-radius: 50%; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border: 3px solid #ddd;"><i class="fas fa-user" style="font-size: 40px; color: #999;"></i></div>`;
+                } else {
+                    showToast('Error removing picture', 'error');
+                }
+            })
+            .catch(() => showToast('Error removing picture', 'error'));
+        }
+        
+        profilePicInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file || !currentEditingUserId) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imageData = e.target.result;
+                
+                fetch(`/admin/update-profile-pic/${currentEditingUserId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image: imageData })
+                })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.success) {
+                        showToast('Profile picture updated', 'success');
+                        document.getElementById(`userPic${currentEditingUserId}`).innerHTML = `<img src="${imageData}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+                        document.getElementById('currentProfilePic').innerHTML = `<img src="${imageData}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #ddd;">`;
+                    } else {
+                        showToast('Error updating picture', 'error');
+                    }
+                })
+                .catch(() => showToast('Error updating picture', 'error'));
+            };
+            reader.readAsDataURL(file);
+        });
+        
+        document.querySelector('#profilePicModal .close-modal').addEventListener('click', function() {
+            profilePicModal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        });
+        
+        profilePicModal.addEventListener('click', function(e) {
+            if (e.target === profilePicModal) {
+                profilePicModal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        });
+
+        function showToast(message, type) {
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            
+            setTimeout(() => {
+                toast.className = 'toast';
+            }, 3000);
+        }
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                if (messageModal.classList.contains('active')) {
+                    closeModal();
+                }
+                if (deleteUserModal.classList.contains('active')) {
+                    closeDeleteModal();
+                }
+                if (editUserModal.classList.contains('active')) {
+                    closeEditModal();
+                }
+            }
+        });
+
+        document.querySelector('#deleteUserModal .close-modal').addEventListener('click', closeDeleteModal);
+        deleteUserModal.addEventListener('click', function(e) {
+            if (e.target === deleteUserModal) closeDeleteModal();
+        });
+
+        document.querySelector('#editUserModal .close-modal').addEventListener('click', closeEditModal);
+        editUserModal.addEventListener('click', function(e) {
+            if (e.target === editUserModal) closeEditModal();
+        });
+
+        function viewGroup(id) {
+            const group = groupsData.find(g => g.id == id);
+            if (!group) return;
+
+            modalBody.innerHTML = '<div class="message-detail"><p>Loading group details...</p></div>';
+            document.querySelector('#messageModal .modal-header h2').innerHTML = '<i class="fas fa-users-cog"></i> Group Details';
+            messageModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+
+            fetch(`/groups/${id}/members`)
+                .then(r => r.json())
+                .then(d => {
+                    if (d.success) {
+                        const creator = usersData.find(u => u.id == group.creator_id);
+                        const membersList = d.members.map(m => `<li>${m.username} (${m.role})</li>`).join('');
+                        
+                        modalBody.innerHTML = `
+                            <div class="message-detail">
+                                <h3><i class="fas fa-id-card"></i> Group ID</h3>
+                                <p>${group.id}</p>
+                            </div>
+                            <div class="message-detail">
+                                <h3><i class="fas fa-users-cog"></i> Group Name</h3>
+                                <p>${group.name}</p>
+                            </div>
+                            <div class="message-detail">
+                                <h3><i class="fas fa-info-circle"></i> Description</h3>
+                                <p>${group.description || 'No description'}</p>
+                            </div>
+                            <div class="message-detail">
+                                <h3><i class="fas fa-user-crown"></i> Creator</h3>
+                                <p>${creator ? creator.username : 'Unknown'}</p>
+                            </div>
+                            <div class="message-detail">
+                                <h3><i class="fas fa-users"></i> Members (${d.members.length})</h3>
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 10px;">
+                                    <ul style="margin: 0; padding-left: 20px;">${membersList}</ul>
+                                </div>
+                            </div>
+                            <div class="message-detail">
+                                <h3><i class="fas fa-calendar"></i> Created</h3>
+                                <p>${group.created_at || 'Unknown'}</p>
+                            </div>
+                        `;
+                    } else {
+                        modalBody.innerHTML = '<div class="message-detail"><p style="color: #dc3545;">Failed to load group details</p></div>';
+                    }
+                })
+                .catch(() => {
+                    modalBody.innerHTML = '<div class="message-detail"><p style="color: #dc3545;">Error loading group details</p></div>';
+                });
+        }
+
+        function deleteGroup(id, name) {
+            if (confirm(`Are you sure you want to delete the group "${name}"? This will remove the group for all members.`)) {
+                fetch('/admin/delete-group', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Remove from local data
+                        const index = groupsData.findIndex(g => g.id == id);
+                        if (index !== -1) {
+                            groupsData.splice(index, 1);
+                            filteredGroups = [...groupsData];
+                            renderGroupsTable(currentGroupsPage);
+                        }
+                        showToast('Group deleted successfully', 'success');
+                    } else {
+                        showToast('Error deleting group: ' + data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('Error deleting group', 'error');
+                });
+            }
+        }
+
+        renderUsersTable(currentUsersPage);
+        renderGroupsTable(currentGroupsPage);
+        renderMessagesTable(currentMessagesPage);
+
+        // Analytics chart init after slight delay to ensure Chart.js is loaded
+        setTimeout(initActivityChart, 400);
+        const daysSelect = document.getElementById('analyticsDays');
+        if (daysSelect) {
+            daysSelect.addEventListener('change', () => initActivityChart());
+        }
+        
+        // Initialize analytics when section is opened
+        document.querySelector('a[data-section="analytics-section"]').addEventListener('click', function() {
+            setTimeout(() => {
+                loadAnalytics();
+                switchAnalyticsView('active-users'); // Default to active users
+                startAnalyticsAutoRefresh();
+            }, 100);
+        });
+        
+        // Stop auto-refresh when leaving analytics section
+        document.querySelectorAll('.sidebar-menu a').forEach(link => {
+            link.addEventListener('click', function() {
+                const sectionId = this.getAttribute('data-section');
+                if (sectionId !== 'analytics-section') {
+                    stopAnalyticsAutoRefresh();
+                }
+            });
+        });
+        
+        function loadAnalytics() {
+            // Load summary data
+            fetch('/admin/analytics-summary')
+                .then(r => r.json())
+                .then(d => {
+                    if (d.success) {
+                        const data = d.data;
+                        // Update metric cards
+                        document.getElementById('totalUsers').textContent = data.total_users;
+                        document.getElementById('totalMessages').textContent = data.total_messages;
+                        document.getElementById('totalFriends').textContent = data.total_friends;
+                        document.getElementById('onlineNow').textContent = data.online_now;
+                        document.getElementById('todayLogins').textContent = data.today_logins;
+                    }
+                })
+                .catch(() => {});
+            
+            // Load charts and other components
+            loadActivityChart2();
+            loadUserDistChart();
+            loadActiveUsersList();
+            loadRecentEvents();
+        }
+        
+        function loadActivityChart2() {
+            const ctx = document.getElementById('activityChart2');
+            if (!ctx || typeof Chart === 'undefined') return;
+            
+            const period = document.getElementById('activityPeriod')?.value || 30;
+            fetch(`/admin/analytics/timeseries?days=${period}`)
+                .then(r => r.json())
+                .then(d => {
+                    if (!d.success) return;
+                    
+                    if (window._activityChart2) window._activityChart2.destroy();
+                    window._activityChart2 = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: d.labels,
+                            datasets: [
+                                {
+                                    label: 'Users',
+                                    data: d.users,
+                                    borderColor: '#6366f1',
+                                    backgroundColor: 'rgba(99,102,241,0.1)',
+                                    tension: 0.4,
+                                    fill: true
+                                },
+                                {
+                                    label: 'Messages',
+                                    data: d.messages,
+                                    borderColor: '#10b981',
+                                    backgroundColor: 'rgba(16,185,129,0.1)',
+                                    tension: 0.4,
+                                    fill: false
+                                },
+                                {
+                                    label: 'Friends',
+                                    data: d.friends,
+                                    borderColor: '#f59e0b',
+                                    backgroundColor: 'rgba(245,158,11,0.1)',
+                                    tension: 0.4,
+                                    fill: false
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: { beginAtZero: true }
+                            },
+                            plugins: {
+                                legend: { display: true, position: 'top' }
+                            }
+                        }
+                    });
+                })
+                .catch(() => {});
+        }
+        
+        function loadUserDistChart() {
+            const ctx = document.getElementById('userDistChart');
+            if (!ctx || typeof Chart === 'undefined') return;
+            
+            fetch('/admin/analytics-summary')
+                .then(r => r.json())
+                .then(d => {
+                    if (!d.success) return;
+                    
+                    const statusData = d.data.users_by_status;
+                    const labels = Object.keys(statusData);
+                    const data = Object.values(statusData);
+                    
+                    if (window._userDistChart) window._userDistChart.destroy();
+                    window._userDistChart = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                data: data,
+                                backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#6b7280', '#8b5cf6']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { position: 'bottom' }
+                            }
+                        }
+                    });
+                })
+                .catch(() => {});
+        }
+        
+        // Analytics view switching
+        function switchAnalyticsView(viewName) {
+            // Update button states
+            document.querySelectorAll('.analytics-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-view="${viewName}"]`).classList.add('active');
+            
+            // Update view visibility
+            document.querySelectorAll('.analytics-view').forEach(view => {
+                view.classList.remove('active');
+            });
+            document.getElementById(`${viewName}-view`).classList.add('active');
+            
+            // Load data for the selected view
+            switch(viewName) {
+                case 'active-users':
+                    loadActiveUsersList();
+                    break;
+                case 'system-health':
+                    loadSystemHealth();
+                    break;
+                case 'recent-events':
+                    loadRecentEvents();
+                    break;
+            }
+        }
+        
+        // Individual refresh functions
+        function refreshActiveUsers() {
+            loadActiveUsersList();
+            updateLastUpdated('activeUsersLastUpdated');
+        }
+        
+        function refreshSystemHealth() {
+            loadSystemHealth();
+            updateLastUpdated('systemHealthLastUpdated');
+        }
+        
+        function refreshRecentEvents() {
+            loadRecentEvents();
+            updateLastUpdated('recentEventsLastUpdated');
+        }
+        
+        function updateLastUpdated(elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                const now = new Date();
+                element.textContent = `Last updated: ${now.toLocaleTimeString()}`;
+            }
+        }
+        
+        function loadSystemHealth() {
+            const container = document.getElementById('systemHealth');
+            if (!container) return;
+            
+            container.innerHTML = '<div style="text-align:center; padding:20px; color:#6c757d;"><i class="fas fa-spinner fa-spin"></i> Loading system health...</div>';
+            
+            fetch('/admin/system-health')
+                .then(r => r.json())
+                .then(d => {
+                    if (!d.success) {
+                        container.innerHTML = '<div style="text-align:center; padding:20px; color:#dc3545;">Failed to load system health</div>';
+                        return;
+                    }
+                    
+                    const health = d.health;
+                    const getStatusColor = (value, threshold) => {
+                        if (value > threshold) return '#e53e3e';
+                        if (value > threshold * 0.7) return '#ed8936';
+                        return '#48bb78';
+                    };
+                    
+                    const serverColor = health.server_status === 'online' ? '#48bb78' : '#e53e3e';
+                    const dbColor = health.database_connected ? '#48bb78' : '#e53e3e';
+                    
+                    container.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; margin:10px 0; padding:12px; background:#f7fafc; border-radius:8px; border-left:4px solid ${serverColor};">
+                            <span><i class="fas fa-server" style="color:${serverColor};"></i> Server Status</span>
+                            <span style="color:${serverColor}; font-weight:600;">${health.server_status.toUpperCase()} <span class="realtime-indicator">Live</span></span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin:10px 0; padding:12px; background:#f7fafc; border-radius:8px; border-left:4px solid ${dbColor};">
+                            <span><i class="fas fa-database" style="color:${dbColor};"></i> Database</span>
+                            <span style="color:${dbColor}; font-weight:600;">${health.database_connected ? 'Connected' : 'Disconnected'}</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin:10px 0; padding:12px; background:#f7fafc; border-radius:8px; border-left:4px solid ${getStatusColor(health.memory_usage, 80)};">
+                            <span><i class="fas fa-memory" style="color:${getStatusColor(health.memory_usage, 80)};"></i> Memory Usage</span>
+                            <span style="color:${getStatusColor(health.memory_usage, 80)}; font-weight:600;">${health.memory_usage}%</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin:10px 0; padding:12px; background:#f7fafc; border-radius:8px; border-left:4px solid ${getStatusColor(health.storage_usage, 70)};">
+                            <span><i class="fas fa-hdd" style="color:${getStatusColor(health.storage_usage, 70)};"></i> Storage</span>
+                            <span style="color:${getStatusColor(health.storage_usage, 70)}; font-weight:600;">${health.storage_usage}%</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin:10px 0; padding:12px; background:#f7fafc; border-radius:8px; border-left:4px solid ${getStatusColor(health.cpu_usage, 70)};">
+                            <span><i class="fas fa-microchip" style="color:${getStatusColor(health.cpu_usage, 70)};"></i> CPU Usage</span>
+                            <span style="color:${getStatusColor(health.cpu_usage, 70)}; font-weight:600;">${health.cpu_usage}%</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin:10px 0; padding:12px; background:#f7fafc; border-radius:8px; border-left:4px solid #48bb78;">
+                            <span><i class="fas fa-users" style="color:#48bb78;"></i> Online Users</span>
+                            <span style="color:#48bb78; font-weight:600;">${health.online_users}</span>
+                        </div>
+                    `;
+                })
+                .catch(() => {
+                    container.innerHTML = '<div style="text-align:center; padding:20px; color:#dc3545;">Error loading system health</div>';
+                });
+        }
+        
+        function loadActiveUsersList() {
+            const container = document.getElementById('activeUsersList');
+            if (!container) return;
+            
+            container.innerHTML = '<div style="text-align:center; padding:20px; color:#6c757d;"><i class="fas fa-spinner fa-spin"></i> Loading active users...</div>';
+            
+            fetch('/admin/active-users')
+                .then(r => r.json())
+                .then(d => {
+                    if (!d.success) {
+                        container.innerHTML = '<div style="text-align:center; padding:20px; color:#dc3545;">Failed to load active users</div>';
+                        return;
+                    }
+                    
+                    const users = d.users;
+                    let html = '';
+                    
+                    if (users.length === 0) {
+                        html = '<div style="text-align:center; padding:40px; color:#6c757d;"><i class="fas fa-users" style="font-size:3rem; margin-bottom:15px; opacity:0.3;"></i><p>No active users found</p></div>';
+                    } else {
+                        users.forEach((user, index) => {
+                            const statusColor = user.is_online ? '#10b981' : '#6b7280';
+                            const statusIcon = user.is_online ? 'fas fa-circle' : 'far fa-circle';
+                            const rankColor = index < 3 ? '#e53e3e' : '#6c757d';
+                            const lastLogin = user.last_login ? new Date(user.last_login).toLocaleDateString() : 'Never';
+                            
+                            html += `
+                                <div style="padding:15px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; transition:background 0.2s;" onmouseover="this.style.background='#f8f9ff'" onmouseout="this.style.background='transparent'">
+                                    <div style="display:flex; align-items:center; gap:12px;">
+                                        <span style="background:${rankColor}; color:white; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.8rem; font-weight:600;">${index + 1}</span>
+                                        <i class="${statusIcon}" style="color:${statusColor}; font-size:10px;"></i>
+                                        <div>
+                                            <div style="font-weight:600; color:#2d3748;">${user.username}</div>
+                                            <div style="font-size:0.8rem; color:#64748b;">${user.email}</div>
+                                            <div style="font-size:0.75rem; color:#9ca3af;">Last: ${lastLogin}</div>
+                                        </div>
+                                    </div>
+                                    <div style="text-align:right;">
+                                        <div style="color:#2d3748; font-weight:600;">${user.message_count} msgs</div>
+                                        <div style="color:#64748b; font-size:0.8rem;">${user.login_count} logins</div>
+                                        ${user.is_online ? '<div style="color:#10b981; font-size:0.75rem; font-weight:600;">● ONLINE</div>' : ''}
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+                    
+                    container.innerHTML = html;
+                })
+                .catch(() => {
+                    container.innerHTML = '<div style="text-align:center; padding:20px; color:#dc3545;">Error loading active users</div>';
+                });
+        }
+        
+        function loadRecentEvents() {
+            const container = document.getElementById('recentEvents');
+            if (!container) return;
+            
+            fetch('/admin/logs/recent')
+                .then(r => r.json())
+                .then(d => {
+                    if (!d.success) {
+                        container.innerHTML = '<p style="color:#64748b; text-align:center; padding:20px;">Failed to load events</p>';
+                        return;
+                    }
+                    
+                    const logs = d.logs;
+                    let events = [];
+                    
+                    // Process logins with user details
+                    logs.login_logs.slice(0, 5).forEach(log => {
+                        const user = usersData.find(u => u.id == log[1]);
+                        const username = user ? user.username : `User ${log[1]}`;
+                        events.push({
+                            time: new Date(log[2]).getTime(),
+                            html: `<div style="padding:8px; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; gap:8px;">
+                                <i class="fas fa-sign-in-alt" style="color:#10b981; width:16px;"></i>
+                                <span style="font-size:0.9rem;">${username} logged in</span>
+                                <span style="color:#64748b; font-size:0.8rem; margin-left:auto;">${formatTime(log[2])}</span>
+                            </div>`
+                        });
+                    });
+                    
+                    // Process friend requests with user details
+                    logs.friend_requests.slice(0, 3).forEach(req => {
+                        const sender = usersData.find(u => u.id == req[1]);
+                        const receiver = usersData.find(u => u.id == req[2]);
+                        const senderName = sender ? sender.username : `User ${req[1]}`;
+                        const receiverName = receiver ? receiver.username : `User ${req[2]}`;
+                        events.push({
+                            time: new Date(req[4]).getTime(),
+                            html: `<div style="padding:8px; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; gap:8px;">
+                                <i class="fas fa-user-plus" style="color:#6366f1; width:16px;"></i>
+                                <span style="font-size:0.9rem;">${senderName} → ${receiverName} (${req[3]})</span>
+                                <span style="color:#64748b; font-size:0.8rem; margin-left:auto;">${formatTime(req[4])}</span>
+                            </div>`
+                        });
+                    });
+                    
+                    // Process contact messages
+                    logs.contact_messages.slice(0, 3).forEach(msg => {
+                        events.push({
+                            time: new Date(msg[5]).getTime(),
+                            html: `<div style="padding:8px; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; gap:8px;">
+                                <i class="fas fa-envelope" style="color:#f59e0b; width:16px;"></i>
+                                <span style="font-size:0.9rem;">Message from ${msg[1]}</span>
+                                <span style="color:#64748b; font-size:0.8rem; margin-left:auto;">${formatTime(msg[5])}</span>
+                            </div>`
+                        });
+                    });
+                    
+                    // Sort by time (newest first) and display
+                    events.sort((a, b) => b.time - a.time);
+                    const html = events.slice(0, 8).map(e => e.html).join('');
+                    container.innerHTML = html || '<p style="color:#64748b; text-align:center; padding:20px;">No recent events</p>';
+                })
+                .catch(() => {
+                    container.innerHTML = '<p style="color:#64748b; text-align:center; padding:20px;">Error loading events</p>';
+                });
+        }
+        
+        function formatTime(dateStr) {
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diff = now - date;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+            
+            if (minutes < 1) return 'now';
+            if (minutes < 60) return `${minutes}m ago`;
+            if (hours < 24) return `${hours}h ago`;
+            return `${days}d ago`;
+        }
+        
+        // Add event listener for activity period change
+        document.getElementById('activityPeriod')?.addEventListener('change', loadActivityChart2);
+        
+        // Analytics functions
+        function exportAnalytics() {
+            showToast('Analytics export feature coming soon', 'info');
+        }
+        
+        function refreshAnalytics() {
+            loadAnalytics();
+            showToast('Analytics refreshed', 'success');
+        }
+        
+        // Auto-refresh system for analytics
+        let analyticsIntervals = {};
+        
+        function startAnalyticsAutoRefresh() {
+            // Clear existing intervals
+            Object.values(analyticsIntervals).forEach(interval => clearInterval(interval));
+            
+            // Start auto-refresh for each component
+            analyticsIntervals.activeUsers = setInterval(() => {
+                if (document.getElementById('analytics-section').classList.contains('active') && 
+                    document.getElementById('active-users-view').classList.contains('active')) {
+                    loadActiveUsersList();
+                    updateLastUpdated('activeUsersLastUpdated');
+                }
+            }, 15000); // 15 seconds
+            
+            analyticsIntervals.systemHealth = setInterval(() => {
+                if (document.getElementById('analytics-section').classList.contains('active') && 
+                    document.getElementById('system-health-view').classList.contains('active')) {
+                    loadSystemHealth();
+                    updateLastUpdated('systemHealthLastUpdated');
+                }
+            }, 5000); // 5 seconds for system health
+            
+            analyticsIntervals.recentEvents = setInterval(() => {
+                if (document.getElementById('analytics-section').classList.contains('active') && 
+                    document.getElementById('recent-events-view').classList.contains('active')) {
+                    loadRecentEvents();
+                    updateLastUpdated('recentEventsLastUpdated');
+                }
+            }, 10000); // 10 seconds
+        }
+        
+        function stopAnalyticsAutoRefresh() {
+            Object.values(analyticsIntervals).forEach(interval => clearInterval(interval));
+            analyticsIntervals = {};
+        }
+        function viewBlockList(userId, username) {
+            modalBody.innerHTML = '<div class="message-detail"><p>Loading block list...</p></div>';
+            document.querySelector('#messageModal .modal-header h2').innerHTML = `<i class="fas fa-ban"></i> Block List: ${username}`;
+            messageModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            fetch(`/admin/user-blocks/${userId}`)
+                .then(r => r.json())
+                .then(d => {
+                    if (!d.success) {
+                        modalBody.innerHTML = '<div class="message-detail"><p style="color:#dc3545;">Failed to load block list</p></div>';
+                        return;
+                    }
+                    
+                    const blockedBy = d.blocks.filter(b => b[2] === 'blocked_by');
+                    const blocks = d.blocks.filter(b => b[2] === 'blocks');
+                    
+                    let html = '';
+                    if (blockedBy.length) {
+                        html += '<div class="message-detail"><h3>Blocked by:</h3>';
+                        blockedBy.forEach(b => {
+                            html += `<p>${b[1]} <button onclick="unblockUser(${b[0]}, ${userId})" style="background:#28a745; color:white; border:none; padding:2px 8px; border-radius:3px; margin-left:10px;">Unblock</button></p>`;
+                        });
+                        html += '</div>';
+                    }
+                    if (blocks.length) {
+                        html += '<div class="message-detail"><h3>Blocks:</h3>';
+                        blocks.forEach(b => {
+                            html += `<p>${b[1]} <button onclick="unblockUser(${userId}, ${b[0]})" style="background:#28a745; color:white; border:none; padding:2px 8px; border-radius:3px; margin-left:10px;">Unblock</button></p>`;
+                        });
+                        html += '</div>';
+                    }
+                    
+                    if (!blockedBy.length && !blocks.length) {
+                        html += '<div class="message-detail"><p>No blocks found for this user</p></div>';
+                    }
+                    
+                    html += `<div class="message-detail"><h3>Add Block:</h3>
+                        <select id="blockUserSelect" class="form-select" style="margin-bottom:10px;">
+                            <option value="">Select user to block...</option>
+                            ${usersData.filter(u => u.id != userId).map(u => `<option value="${u.id}">${u.username}</option>`).join('')}
+                        </select>
+                        <button onclick="blockUser(${userId})" class="logout-btn" style="background:#dc3545; padding:8px 16px;">Block User</button>
+                    </div>`;
+                    
+                    modalBody.innerHTML = html;
+                })
+                .catch(() => {
+                    modalBody.innerHTML = '<div class="message-detail"><p style="color:#dc3545;">Error loading block list</p></div>';
+                });
+        }
+        
+        function blockUser(userId) {
+            const targetId = document.getElementById('blockUserSelect').value;
+            if (!targetId) {
+                showToast('Please select a user to block', 'error');
+                return;
+            }
+            
+            fetch('/admin/manage-block', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ user1_id: userId, user2_id: targetId, action: 'block' })
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    showToast('User blocked successfully', 'success');
+                    const user = usersData.find(u => u.id == userId);
+                    viewBlockList(userId, user ? user.username : 'User');
+                } else {
+                    showToast(d.message || 'Failed to block user', 'error');
+                }
+            })
+            .catch(() => showToast('Error blocking user', 'error'));
+        }
+        
+        function unblockUser(blockerId, blockedId) {
+            fetch('/admin/manage-block', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ user1_id: blockerId, user2_id: blockedId, action: 'unblock' })
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    showToast('User unblocked successfully', 'success');
+                    // Refresh the current user's block list
+                    const currentUserId = document.querySelector('#messageModal .modal-header h2').textContent.includes('Block List:') ? 
+                        document.querySelector('#messageModal .modal-header h2').textContent.split('Block List: ')[1] : null;
+                    if (currentUserId) {
+                        const user = usersData.find(u => u.username === currentUserId);
+                        if (user) viewBlockList(user.id, user.username);
+                    }
+                } else {
+                    showToast(d.message || 'Failed to unblock user', 'error');
+                }
+            })
+            .catch(() => showToast('Error unblocking user', 'error'));
+        }
+        
+        function initActivityChart() {
+            if (typeof Chart === 'undefined') { setTimeout(initActivityChart, 200); return; }
+            const ctx = document.getElementById('activityChart');
+            if (!ctx) return;
+            const days = document.getElementById('analyticsDays')?.value || 14;
+            fetch(`/admin/analytics/timeseries?days=${days}`)
+                .then(r=>r.json()).then(d=>{
+                    if (!d.success) return;
+                    // Destroy previous chart if exists
+                    if (window._activityChart) { window._activityChart.destroy(); }
+                    window._activityChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: d.labels,
+                            datasets: [
+                                { label: 'Users', data: d.users, backgroundColor: 'rgba(110,142,251,0.6)', borderColor: '#6e8efb', borderWidth: 1 },
+                                { label: 'Messages', data: d.messages, backgroundColor: 'rgba(40,167,69,0.5)', borderColor: '#28a745', borderWidth: 1 },
+                                { label: 'Friends', data: d.friends, backgroundColor: 'rgba(23,162,184,0.5)', borderColor: '#17a2b8', borderWidth: 1 },
+                                { label: 'Logins', data: d.logins, type: 'line', tension: 0.3, borderColor: '#a777e3', backgroundColor: 'rgba(167,119,227,0.2)', yAxisID: 'y1' }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: { beginAtZero: true, title: { display: true, text: 'Counts' } },
+                                y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Logins' } },
+                                x: { ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 12 } }
+                            },
+                            plugins: {
+                                legend: { position: 'top' },
+                                tooltip: { mode: 'index', intersect: false }
+                            }
+                        }
+                    });
+                });
+        }
+    </script>
+</body>
+
+</html>

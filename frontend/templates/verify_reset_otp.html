@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Code - ChatMind</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../static/reset_otp.css">
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <i class="fas fa-comment-dots"></i>
+            <h1>ChatMind</h1>
+        </div>
+
+        <h2>Verify Code</h2>
+        <p class="subtitle">Enter the 6-digit verification code sent to your email</p>
+        
+        <div class="email-display" id="emailDisplay"></div>
+
+        <div class="flash-messages"></div>
+
+        <form id="verifyOtpForm">
+            <div class="form-group">
+                <label>Verification Code</label>
+                <div class="otp-input">
+                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                </div>
+            </div>
+
+            <div class="timer" id="timer"></div>
+
+            <button type="submit" class="btn" id="verifyBtn">Verify Code</button>
+        </form>
+
+        <div class="resend-link">
+            <button type="button" id="resendBtn">Didn't receive code? Resend</button>
+        </div>
+
+        <div class="back-link">
+            <a href="/forgot-password"><i class="fas fa-arrow-left"></i> Back to Forgot Password</a>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const email = urlParams.get('email');
+        const otpInputs = document.querySelectorAll('.otp-input input');
+        const flashMessages = document.querySelector('.flash-messages');
+        let timer;
+        let timeLeft = 600; // 10 minutes
+
+        document.getElementById('emailDisplay').textContent = email || 'your email';
+
+        // OTP input handling
+        otpInputs.forEach((input, index) => {
+            input.addEventListener('input', function(e) {
+                if (e.target.value.length === 1) {
+                    if (index < otpInputs.length - 1) {
+                        otpInputs[index + 1].focus();
+                    }
+                }
+            });
+
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+                    otpInputs[index - 1].focus();
+                }
+            });
+        });
+
+        // Timer
+        function startTimer() {
+            timer = setInterval(() => {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                document.getElementById('timer').textContent = 
+                    `Code expires in ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    document.getElementById('timer').textContent = 'Code expired';
+                }
+                timeLeft--;
+            }, 1000);
+        }
+
+        startTimer();
+
+        // Verify OTP
+        document.getElementById('verifyOtpForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const otp = Array.from(otpInputs).map(input => input.value).join('');
+            
+            if (otp.length !== 6) {
+                showMessage('Please enter all 6 digits', false);
+                return;
+            }
+
+            const btn = document.getElementById('verifyBtn');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>Verifying...';
+
+            try {
+                const response = await fetch('/verify-reset-otp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email: email, otp: otp })
+                });
+
+                const data = await response.json();
+                showMessage(data.message, data.success);
+
+                if (data.success) {
+                    setTimeout(() => {
+                        window.location.href = `/reset-password?email=${encodeURIComponent(email)}`;
+                    }, 1500);
+                }
+            } catch (error) {
+                showMessage('Network error. Please try again.', false);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        });
+
+        // Resend OTP
+        document.getElementById('resendBtn').addEventListener('click', async function() {
+            const btn = this;
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>Sending...';
+
+            try {
+                const response = await fetch('/resend-reset-otp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email: email })
+                });
+
+                const data = await response.json();
+                showMessage(data.message, data.success);
+
+                if (data.success) {
+                    timeLeft = 600;
+                    clearInterval(timer);
+                    startTimer();
+                    otpInputs.forEach(input => input.value = '');
+                    otpInputs[0].focus();
+                }
+            } catch (error) {
+                showMessage('Network error. Please try again.', false);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        });
+
+        function showMessage(message, isSuccess) {
+            flashMessages.innerHTML = `
+                <div class="flash-message ${isSuccess ? 'success-message' : ''}">
+                    <i class="fas ${isSuccess ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}
+                </div>
+            `;
+        }
+
+        // Focus first input on load
+        otpInputs[0].focus();
+    </script>
+</body>
+</html>

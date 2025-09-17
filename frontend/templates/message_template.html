@@ -1,0 +1,22 @@
+<!-- Example message template with reactions -->
+<div class="message" data-message-id="{{ message.id }}">
+    <div class="message-content">
+        <div class="message-header">
+            <span class="sender-name">{{ message.sender_name }}</span>
+            <span class="message-time">{{ message.created_at }}</span>
+        </div>
+        <div class="message-text">{{ message.content }}</div>
+        
+        <!-- Reactions container will be added here by JavaScript -->
+        <div class="message-reactions" style="display: none;"></div>
+    </div>
+</div>
+
+<!-- Include the required files in your main template -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/reactions.css') }}">
+<script src="{{ url_for('static', filename='js/reactions.js') }}"></script>
+
+<!-- Set current user for JavaScript -->
+<script>
+    document.body.dataset.currentUser = '{{ session.username }}';
+</script>

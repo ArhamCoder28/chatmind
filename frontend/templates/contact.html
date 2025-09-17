@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - ChatMind</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../static/contact.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="logo-box">
+                    <span>C</span>
+                </div>
+                <h1>ChatMind</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/features">Features</a></li>
+                    <li><a href="/about">About</a></li>
+                    <li><a href="/contact" class="active">Contact</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <div class="hero">
+            <h1>Get in Touch</h1>
+            <p>Have questions, feedback, or need support? We're here to help and would love to hear from you!</p>
+        </div>
+
+        <div class="contact-section">
+            <div class="contact-grid">
+                <div class="contact-info">
+                    <h2>Let's Connect</h2>
+                    <p>Whether you're a current user with questions, a potential customer wanting to learn more, or a developer interested in our API, we're here to help.</p>
+                    
+                    <ul class="contact-methods">
+                        <li>
+                            <i class="fas fa-envelope"></i>
+                            <div class="contact-text">
+                                <h4>Email Support</h4>
+                                <p>chatmind@gmail.com</p>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fas fa-phone"></i>
+                            <div class="contact-text">
+                                <h4>Phone Support</h4>
+                                <p>+92 303 0111550</p>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fas fa-comments"></i>
+                            <div class="contact-text">
+                                <h4>Live Chat</h4>
+                                <p>Available 24/7 in webchat</p>
+                            </div>
+                        </li>
+                        
+                    </ul>
+                </div>
+
+                <div class="contact-form">
+                    <h2>Send us a Message</h2>
+                    <!-- Form will submit to your Flask route -->
+                    <form id="contactForm" action="/contact" method="POST">
+                        <div class="form-group">
+                            <label for="name">Full Name</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="subject">Subject</label>
+                            <select id="subject" name="subject" required>
+                                <option value="">Select a topic</option>
+                                <option value="support">Technical Support</option>
+                                <option value="billing">Billing Question</option>
+                                <option value="feature">Feature Request</option>
+                                <option value="partnership">Partnership</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="message">Message</label>
+                            <textarea id="message" name="message" placeholder="Tell us how we can help you..." required></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn">Send Message</button>
+                    </form>
+                    
+                    <div id="statusMessage" class="status-message"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-section">
+            <div class="section-title">
+                <h2>Frequently Asked Questions</h2>
+                <p>Quick answers to common questions</p>
+            </div>
+            
+            <div class="faq-grid">
+                <div class="faq-item">
+                    <button class="faq-question">
+                        How do I create a server?
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Working on it.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <button class="faq-question">
+                        Is ChatMind free to use?
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Yes! ChatMind offers a robust free tier. Pro features are available for advanced users who need additional capabilities.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <button class="faq-question">
+                        How secure are my messages?
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>All messages are encrypted end-to-end. We use industry-standard security protocols and never store your messages in plain text.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <button class="faq-question">
+                        Can I use ChatMind on mobile?
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Service are not available.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="social-section">
+            <h2>Follow Us</h2>
+            <p>Stay updated with the latest news and features</p>
+            <div class="social-links">
+                <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-link"><i class="fab fa-discord"></i></a>
+                <a href="#" class="social-link"><i class="fab fa-github"></i></a>
+                <a href="#" class="social-link"><i class="fab fa-linkedin"></i></a>
+                <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+            </div>
+        </div>
+
+        <footer>
+            <p>&copy; 2025 ChatMind. All rights reserved. | We're here to help!</p>
+        </footer>
+    </div>
+
+    <!-- External JavaScript file -->
+    <script src="../static/contact.js"></script>
+</body>
+</html>
